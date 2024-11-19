@@ -24,6 +24,9 @@ So if you run go version it will print the version number 1.23.3`,
 		}
 		switch {
 		case len(args) == 2:
+			if installFlagUsed {
+				fmt.Println("I would be installing the version you specified")
+			}
 			fmt.Printf("Setting version of %v to %v\n", args[0], args[1])
 		case installFlagUsed:
 			fmt.Println("You need to specify a version to install.")
@@ -33,7 +36,7 @@ So if you run go version it will print the version number 1.23.3`,
 			}
 			os.Exit(1)
 		default:
-			fmt.Println("I would normally list the versions available and let you pick here")
+			fmt.Println("I would list the versions available and let you pick here")
 		}
 	},
 }
