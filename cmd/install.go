@@ -30,7 +30,7 @@ type downloadedMsg bool
 type installedMsg bool
 
 func installInitialModel(plugin mtvmplugin.Plugin, pluginName string, version string) installModel {
-	progressChannel := plugin.Progress()
+	progressChannel := make(chan float64)
 	progressBar := progress.New(progress.WithDefaultGradient())
 	spinnerModel := spinner.New()
 	spinnerModel.Spinner = spinner.Dot
@@ -46,7 +46,7 @@ func installInitialModel(plugin mtvmplugin.Plugin, pluginName string, version st
 }
 
 func (m installModel) Init() tea.Cmd {
-	return tea.Batch(download(m.plugin, m.version), waitForProgress(m.progressChannel), m.spinner.Tick)
+	return tea.Batch(download(m.plugin, m.version, m.progressChannel), waitForProgress(m.progressChannel), m.spinner.Tick)
 }
 
 func (m installModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -77,9 +77,9 @@ func (m installModel) View() string {
 	return m.spinner.View() + " Installing..."
 }
 
-func download(plugin mtvmplugin.Plugin, version string) tea.Cmd {
+func download(plugin mtvmplugin.Plugin, version string, progressChannel chan float64) tea.Cmd {
 	return func() tea.Msg {
-		err := plugin.Download(version)
+		err := plugin.Download(version, progressChannel)
 		if err != nil {
 			return err
 		}

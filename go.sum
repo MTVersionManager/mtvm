@@ -16,12 +16,16 @@ github.com/MTVersionManager/goplugin v0.0.0-20241117220607-924929b95ba5 h1:gBT52
 github.com/MTVersionManager/goplugin v0.0.0-20241117220607-924929b95ba5/go.mod h1:tsSoXqycZixVTvvl30Ld+L1LeVIa+/lbaey2QCQTX4M=
 github.com/MTVersionManager/goplugin v0.0.0-20241117220906-738ccce4168c h1:sElOGW4DgO9QcoRb/QI/Nvzm3u/I7OioTUShiK3Kyy4=
 github.com/MTVersionManager/goplugin v0.0.0-20241117220906-738ccce4168c/go.mod h1:tsSoXqycZixVTvvl30Ld+L1LeVIa+/lbaey2QCQTX4M=
+github.com/MTVersionManager/goplugin v0.0.0-20241119220009-832c032d8ea9 h1:4mVfprterRBvzInsxPndq+Llm3sEkJadLTxtbM4zln8=
+github.com/MTVersionManager/goplugin v0.0.0-20241119220009-832c032d8ea9/go.mod h1:R+wIKnDFfTRsfJdIkvLQOnlq3Vcd4oBdiXT2cyBfocI=
 github.com/MTVersionManager/mtvmplugin v0.0.0-20241117182454-dc039a4e85d4 h1:mnKPG88hO5iEi5Mc2B0sYzs0kTREG3jhPDlhofxECHI=
 github.com/MTVersionManager/mtvmplugin v0.0.0-20241117182454-dc039a4e85d4/go.mod h1:eo3CICn6Ovu09INVMm0iInMDl8hUgHYSCIITB0IVLJI=
 github.com/MTVersionManager/mtvmplugin v0.0.0-20241117203236-01f02acef9fa h1:gVMrVcT02FrVD7dg5qwoB8dN/3CAJRCZRBev193zC1I=
 github.com/MTVersionManager/mtvmplugin v0.0.0-20241117203236-01f02acef9fa/go.mod h1:eo3CICn6Ovu09INVMm0iInMDl8hUgHYSCIITB0IVLJI=
 github.com/MTVersionManager/mtvmplugin v0.0.0-20241117212947-cba2b3340acc h1:Mjdj+AVBMbn2DyglDsP/Pzh0vwaZyw5ZKV6qRoqOe/o=
 github.com/MTVersionManager/mtvmplugin v0.0.0-20241117212947-cba2b3340acc/go.mod h1:eo3CICn6Ovu09INVMm0iInMDl8hUgHYSCIITB0IVLJI=
+github.com/MTVersionManager/mtvmplugin v0.0.0-20241119215715-bc2a9d9b7798 h1:hOtkGQ7bDaPRazRyyaOBxVQoN3+ChDEOV+RSZfq9Klw=
+github.com/MTVersionManager/mtvmplugin v0.0.0-20241119215715-bc2a9d9b7798/go.mod h1:eo3CICn6Ovu09INVMm0iInMDl8hUgHYSCIITB0IVLJI=
 github.com/aymanbagabas/go-osc52/v2 v2.0.1 h1:HwpRHbFMcZLEVr42D4p7XBqjyuxQH5SMiErDT4WkJ2k=
 github.com/aymanbagabas/go-osc52/v2 v2.0.1/go.mod h1:uYgXzlJ7ZpABp8OJ+exZzJJhRNQ2ASbcXHWsFqH8hp8=
 github.com/charmbracelet/bubbles v0.20.0 h1:jSZu6qD8cRQ6k9OMfR1WlM+ruM8fkPWkHvQWD9LIutE=
