@@ -2,6 +2,8 @@ package cmd
 
 import (
 	"fmt"
+	"log"
+	"os"
 
 	"github.com/spf13/cobra"
 )
@@ -14,9 +16,25 @@ var useCmd = &cobra.Command{
 For example:
 "mtvm use go 1.23.3" sets go version 1.23.3 as the active version.
 So if you run go version it will print the version number 1.23.3`,
-	Args: cobra.ExactArgs(2),
+	Args: cobra.RangeArgs(1, 2),
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("use called")
+		installFlagUsed, err := cmd.Flags().GetBool("install")
+		if err != nil {
+			log.Fatal(err)
+		}
+		switch {
+		case len(args) == 2:
+			fmt.Printf("Setting version of %v to %v\n", args[0], args[1])
+		case installFlagUsed:
+			fmt.Println("You need to specify a version to install.")
+			err = cmd.Usage()
+			if err != nil {
+				log.Fatal(err)
+			}
+			os.Exit(1)
+		default:
+			fmt.Println("I would normally list the versions available and let you pick here")
+		}
 	},
 }
 
