@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/MTVersionManager/mtvm/shared"
 	"log"
 	"os"
 
@@ -19,15 +20,31 @@ So if you run go version it will print the version number 1.23.3`,
 	Args: cobra.RangeArgs(1, 2),
 	Run: func(cmd *cobra.Command, args []string) {
 		installFlagUsed, err := cmd.Flags().GetBool("install")
+		plugin, err := shared.LoadPlugin(args[0])
 		if err != nil {
 			log.Fatal(err)
 		}
 		switch {
 		case len(args) == 2:
-			if installFlagUsed {
-				fmt.Println("I would be installing the version you specified")
+			version := args[1]
+			if version == "latest" {
+				var err error
+				version, err = plugin.GetLatestVersion()
+				if err != nil {
+					log.Fatal(err)
+				}
 			}
-			fmt.Printf("Setting version of %v to %v\n", args[0], args[1])
+			versionInstalled, err := shared.IsVersionInstalled(args[0], version)
+			if err != nil {
+				log.Fatal(err)
+			}
+			if installFlagUsed && !versionInstalled {
+				fmt.Println("I would be installing the version you specified")
+			} else if !versionInstalled {
+				fmt.Println("That version is not installed.")
+				os.Exit(1)
+			}
+			fmt.Printf("Setting version of %v to %v\n", args[0], version)
 		case installFlagUsed:
 			fmt.Println("You need to specify a version to install.")
 			err = cmd.Usage()
