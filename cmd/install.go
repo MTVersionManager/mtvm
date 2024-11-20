@@ -130,19 +130,19 @@ If you run "mtvm install go latest" it will install the latest version of go`,
 				log.Fatal(err)
 			}
 		}
-		_, err := os.Stat(path.Join(shared.Configuration.InstallDir, args[0], version))
+		installed, err := shared.IsVersionInstalled(args[0], version)
 		if err != nil {
-			if os.IsNotExist(err) {
-				p := tea.NewProgram(installInitialModel(plugin, args[0], version))
-				if _, err := p.Run(); err != nil {
-					fmt.Printf("Alas, there's been an error: %v", err)
-					os.Exit(1)
-				}
-			} else {
-				log.Fatal(err)
+			log.Fatal(err)
+		}
+		if !installed {
+			p := tea.NewProgram(installInitialModel(plugin, args[0], version))
+			if _, err := p.Run(); err != nil {
+				fmt.Printf("Alas, there's been an error: %v", err)
+				os.Exit(1)
 			}
 		} else {
 			fmt.Println("That version is already installed")
+			os.Exit(1)
 		}
 	},
 }
