@@ -20,6 +20,9 @@ So if you run go version it will print the version number 1.23.3`,
 	Args: cobra.RangeArgs(1, 2),
 	Run: func(cmd *cobra.Command, args []string) {
 		installFlagUsed, err := cmd.Flags().GetBool("install")
+		if err != nil {
+			log.Fatal(err)
+		}
 		plugin, err := shared.LoadPlugin(args[0])
 		if err != nil {
 			log.Fatal(err)

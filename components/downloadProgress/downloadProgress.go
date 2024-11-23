@@ -13,7 +13,6 @@ type Model struct {
 	progress        float64
 	progressBar     progress.Model
 	progressChannel chan float64
-	url             string
 }
 
 func New(progressChannel chan float64) Model {
