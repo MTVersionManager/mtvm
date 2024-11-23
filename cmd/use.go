@@ -52,7 +52,6 @@ So if you run go version it will print the version number 1.23.3`,
 				fmt.Println("That version is not installed.")
 				os.Exit(1)
 			}
-			fmt.Printf("Setting version of %v to %v\n", args[0], version)
 			err = createPathDir()
 			if err != nil {
 				log.Fatal(err)
@@ -61,6 +60,7 @@ So if you run go version it will print the version number 1.23.3`,
 			if err != nil {
 				log.Fatal(err)
 			}
+			fmt.Printf("Set version of %v to %v\n", args[0], version)
 		case installFlagUsed:
 			fmt.Println("You need to specify a version to install.")
 			err = cmd.Usage()
