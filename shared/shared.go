@@ -5,7 +5,7 @@ import (
 	"github.com/MTVersionManager/goplugin"
 	"github.com/MTVersionManager/mtvmplugin"
 	"os"
-	"path"
+	"path/filepath"
 
 	"github.com/MTVersionManager/mtvm/config"
 )
@@ -13,7 +13,7 @@ import (
 var Configuration config.Config
 
 func IsVersionInstalled(tool string, version string) (bool, error) {
-	_, err := os.Stat(path.Join(Configuration.InstallDir, tool, version))
+	_, err := os.Stat(filepath.Join(Configuration.InstallDir, tool, version))
 	if err != nil {
 		if os.IsNotExist(err) {
 			return false, nil

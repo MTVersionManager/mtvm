@@ -7,7 +7,7 @@ import (
 	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
 	"log"
-	"path"
+	"path/filepath"
 )
 
 type Model struct {
@@ -55,7 +55,7 @@ func Download(plugin mtvmplugin.Plugin, version string, progressChannel chan flo
 
 func Install(plugin mtvmplugin.Plugin, installDir string, pluginName string, version string) tea.Cmd {
 	return func() tea.Msg {
-		err := plugin.Install(path.Join(installDir, pluginName, version))
+		err := plugin.Install(filepath.Join(installDir, pluginName, version))
 		if err != nil {
 			return err
 		}

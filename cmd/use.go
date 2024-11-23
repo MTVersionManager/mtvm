@@ -5,6 +5,7 @@ import (
 	"github.com/MTVersionManager/mtvm/shared"
 	"log"
 	"os"
+	"path/filepath"
 
 	"github.com/spf13/cobra"
 )
@@ -48,6 +49,14 @@ So if you run go version it will print the version number 1.23.3`,
 				os.Exit(1)
 			}
 			fmt.Printf("Setting version of %v to %v\n", args[0], version)
+			err = createPathDir()
+			if err != nil {
+				log.Fatal(err)
+			}
+			err = plugin.Use(filepath.Join(shared.Configuration.InstallDir, args[0], version), shared.Configuration.PathDir)
+			if err != nil {
+				log.Fatal(err)
+			}
 		case installFlagUsed:
 			fmt.Println("You need to specify a version to install.")
 			err = cmd.Usage()
@@ -61,6 +70,13 @@ So if you run go version it will print the version number 1.23.3`,
 	},
 }
 
+func createPathDir() error {
+	err := os.MkdirAll(shared.Configuration.PathDir, 0755)
+	if err != nil && !os.IsExist(err) {
+		return err
+	}
+	return nil
+}
 func init() {
 	rootCmd.AddCommand(useCmd)
 

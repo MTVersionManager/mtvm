@@ -45,6 +45,10 @@ For example:
 If you run "mtvm install go latest" it will install the latest version of go`,
 	Args: cobra.ExactArgs(2),
 	Run: func(cmd *cobra.Command, args []string) {
+		err := createInstallDir()
+		if err != nil {
+			log.Fatal(err)
+		}
 		plugin, err := shared.LoadPlugin(args[0])
 		if err != nil {
 			log.Fatal(err)
@@ -72,6 +76,14 @@ If you run "mtvm install go latest" it will install the latest version of go`,
 			os.Exit(1)
 		}
 	},
+}
+
+func createInstallDir() error {
+	err := os.MkdirAll(shared.Configuration.InstallDir, 0755)
+	if err != nil && !os.IsExist(err) {
+		return err
+	}
+	return nil
 }
 
 func init() {
