@@ -2,7 +2,7 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/MTVersionManager/mtvm/components/download"
+	"github.com/MTVersionManager/mtvm/components/install"
 	"github.com/MTVersionManager/mtvm/shared"
 	"github.com/MTVersionManager/mtvmplugin"
 	tea "github.com/charmbracelet/bubbletea"
@@ -12,28 +12,28 @@ import (
 )
 
 type installModel struct {
-	downloader download.Model
+	installer install.Model
 }
 
 func installInitialModel(plugin mtvmplugin.Plugin, pluginName string, version string) installModel {
-	downloadModel := download.New(plugin, pluginName, version)
+	downloadModel := install.New(plugin, pluginName, version)
 	return installModel{
-		downloader: downloadModel,
+		installer: downloadModel,
 	}
 }
 
 func (m installModel) Init() tea.Cmd {
-	return m.downloader.Init()
+	return m.installer.Init()
 }
 
 func (m installModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
-	m.downloader, cmd = m.downloader.Update(msg)
+	m.installer, cmd = m.installer.Update(msg)
 	return m, cmd
 }
 
 func (m installModel) View() string {
-	return m.downloader.View()
+	return m.installer.View()
 }
 
 // installCmd represents the install command
