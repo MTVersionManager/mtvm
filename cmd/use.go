@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"github.com/MTVersionManager/mtvm/shared"
+	tea "github.com/charmbracelet/bubbletea"
 	"log"
 	"os"
 	"path/filepath"
@@ -43,7 +44,10 @@ So if you run go version it will print the version number 1.23.3`,
 				log.Fatal(err)
 			}
 			if installFlagUsed && !versionInstalled {
-				fmt.Println("I would be installing the version you specified")
+				p := tea.NewProgram(installInitialModel(plugin, args[0], version))
+				if _, err := p.Run(); err != nil {
+					log.Fatal(err)
+				}
 			} else if !versionInstalled {
 				fmt.Println("That version is not installed.")
 				os.Exit(1)

@@ -68,8 +68,7 @@ If you run "mtvm install go latest" it will install the latest version of go`,
 		if !installed {
 			p := tea.NewProgram(installInitialModel(plugin, args[0], version))
 			if _, err := p.Run(); err != nil {
-				fmt.Printf("Alas, there's been an error: %v", err)
-				os.Exit(1)
+				log.Fatal(err)
 			}
 		} else {
 			fmt.Println("That version is already installed")
