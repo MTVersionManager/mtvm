@@ -77,6 +77,7 @@ func createPathDir() error {
 	}
 	return nil
 }
+
 func init() {
 	rootCmd.AddCommand(useCmd)
 
