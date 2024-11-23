@@ -3,15 +3,16 @@ module github.com/MTVersionManager/mtvm
 go 1.23.3
 
 require (
-	github.com/MTVersionManager/goplugin v0.0.0-20241119220009-832c032d8ea9
-	github.com/MTVersionManager/mtvmplugin v0.0.0-20241119215715-bc2a9d9b7798
+	github.com/MTVersionManager/goplugin v0.0.0-20241123220718-a0fdaa16d1fc
+	github.com/MTVersionManager/mtvmplugin v0.0.0-20241123190034-39e07c9b14ee
 	github.com/charmbracelet/bubbles v0.20.0
-	github.com/charmbracelet/bubbletea v1.2.2
+	github.com/charmbracelet/bubbletea v1.2.3
 	github.com/spf13/cobra v1.8.1
 	github.com/spf13/viper v1.19.0
 )
 
 require (
+	github.com/Masterminds/semver/v3 v3.3.1 // indirect
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
 	github.com/charmbracelet/harmonica v0.2.0 // indirect
 	github.com/charmbracelet/lipgloss v1.0.0 // indirect

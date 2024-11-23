@@ -2,8 +2,11 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/MTVersionManager/mtvm/shared"
+	tea "github.com/charmbracelet/bubbletea"
 	"log"
 	"os"
+	"path/filepath"
 
 	"github.com/spf13/cobra"
 )
@@ -22,12 +25,42 @@ So if you run go version it will print the version number 1.23.3`,
 		if err != nil {
 			log.Fatal(err)
 		}
+		plugin, err := shared.LoadPlugin(args[0])
+		if err != nil {
+			log.Fatal(err)
+		}
 		switch {
 		case len(args) == 2:
-			if installFlagUsed {
-				fmt.Println("I would be installing the version you specified")
+			version := args[1]
+			if version == "latest" {
+				var err error
+				version, err = plugin.GetLatestVersion()
+				if err != nil {
+					log.Fatal(err)
+				}
 			}
-			fmt.Printf("Setting version of %v to %v\n", args[0], args[1])
+			versionInstalled, err := shared.IsVersionInstalled(args[0], version)
+			if err != nil {
+				log.Fatal(err)
+			}
+			if installFlagUsed && !versionInstalled {
+				p := tea.NewProgram(installInitialModel(plugin, args[0], version))
+				if _, err := p.Run(); err != nil {
+					log.Fatal(err)
+				}
+			} else if !versionInstalled {
+				fmt.Println("That version is not installed.")
+				os.Exit(1)
+			}
+			err = createPathDir()
+			if err != nil {
+				log.Fatal(err)
+			}
+			err = plugin.Use(filepath.Join(shared.Configuration.InstallDir, args[0], version), shared.Configuration.PathDir)
+			if err != nil {
+				log.Fatal(err)
+			}
+			fmt.Printf("Set version of %v to %v\n", args[0], version)
 		case installFlagUsed:
 			fmt.Println("You need to specify a version to install.")
 			err = cmd.Usage()
@@ -39,6 +72,14 @@ So if you run go version it will print the version number 1.23.3`,
 			fmt.Println("I would list the versions available and let you pick here")
 		}
 	},
+}
+
+func createPathDir() error {
+	err := os.MkdirAll(shared.Configuration.PathDir, 0755)
+	if err != nil && !os.IsExist(err) {
+		return err
+	}
+	return nil
 }
 
 func init() {

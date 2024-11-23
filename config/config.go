@@ -10,6 +10,7 @@ import (
 type Config struct {
 	PluginDir  string `json:"pluginDir"`
 	InstallDir string `json:"installDir"`
+	PathDir    string `json:"pathDir"`
 }
 
 // isNotExist Checks if the error from viper.ReadInConfig is because of the configuration not existing
@@ -30,6 +31,11 @@ func GetConfig() (Config, error) {
 		return Config{}, err
 	}
 	viper.SetDefault("installDir", defInstalldir)
+	defPathDir, err := DefaultPathDir()
+	if err != nil {
+		return Config{}, err
+	}
+	viper.SetDefault("pathDir", defPathDir)
 	viper.SetConfigName("config")
 	viper.SetConfigType("json")
 	viper.AddConfigPath(configDir + string(os.PathSeparator) + "mtvm")

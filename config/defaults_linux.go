@@ -4,7 +4,7 @@ package config
 
 import (
 	"os"
-	"path"
+	"path/filepath"
 )
 
 func DefaultInstallDir() (string, error) {
@@ -12,5 +12,13 @@ func DefaultInstallDir() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return path.Join(home, ".local", "share", "mtvm"), nil
+	return filepath.Join(home, ".local", "share", "mtvm"), nil
+}
+
+func DefaultPathDir() (string, error) {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return "", err
+	}
+	return filepath.Join(home, ".local", "bin", "mtvm"), nil
 }
