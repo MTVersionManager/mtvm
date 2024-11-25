@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/spf13/cobra"
 )
@@ -32,7 +33,7 @@ So if you run go version it will print the version number 1.23.3`,
 		switch {
 		case len(args) == 2:
 			version := args[1]
-			if version == "latest" {
+			if strings.ToLower(version) == "latest" {
 				var err error
 				version, err = plugin.GetLatestVersion()
 				if err != nil {

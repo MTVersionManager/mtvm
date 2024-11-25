@@ -6,6 +6,7 @@ import (
 	"github.com/MTVersionManager/mtvmplugin"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/MTVersionManager/mtvm/config"
 )
@@ -25,7 +26,7 @@ func IsVersionInstalled(tool string, version string) (bool, error) {
 
 func LoadPlugin(tool string) (mtvmplugin.Plugin, error) {
 	var plugin mtvmplugin.Plugin
-	if tool == "go" {
+	if strings.ToLower(tool) == "go" {
 		plugin = &goplugin.Plugin{}
 	} else {
 		return nil, errors.New("plugin support is not yet implemented")
