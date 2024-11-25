@@ -9,6 +9,7 @@ import (
 	"github.com/spf13/cobra"
 	"log"
 	"os"
+	"strings"
 )
 
 type installModel struct {
@@ -54,7 +55,7 @@ If you run "mtvm install go latest" it will install the latest version of go`,
 			log.Fatal(err)
 		}
 		version := args[1]
-		if version == "latest" {
+		if strings.ToLower(version) == "latest" {
 			var err error
 			version, err = plugin.GetLatestVersion()
 			if err != nil {
