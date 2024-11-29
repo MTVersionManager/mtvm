@@ -20,7 +20,8 @@ var useCmd = &cobra.Command{
 For example:
 "mtvm use go 1.23.3" sets go version 1.23.3 as the active version.
 So if you run go version it will print the version number 1.23.3`,
-	Args: cobra.RangeArgs(1, 2),
+	Args:    cobra.RangeArgs(1, 2),
+	Aliases: []string{"u"},
 	Run: func(cmd *cobra.Command, args []string) {
 		installFlagUsed, err := cmd.Flags().GetBool("install")
 		if err != nil {

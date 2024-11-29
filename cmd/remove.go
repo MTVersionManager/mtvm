@@ -13,7 +13,8 @@ var removeCmd = &cobra.Command{
 	Long: `Removes a specified version of a tool.
 For example:
 "mtvm remove go 1.23.3" removes go version 1.23.3`,
-	Args: cobra.ExactArgs(2),
+	Args:    cobra.ExactArgs(2),
+	Aliases: []string{"rm", "r"},
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("remove called")
 	},
