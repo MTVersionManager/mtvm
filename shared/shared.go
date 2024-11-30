@@ -19,7 +19,7 @@ type SuccessMsg string
 
 var CheckMark string = lipgloss.NewStyle().Foreground(lipgloss.Color("2")).SetString("✓").String()
 
-func IsVersionInstalled(tool string, version string) (bool, error) {
+func IsVersionInstalled(tool, version string) (bool, error) {
 	_, err := os.Stat(filepath.Join(Configuration.InstallDir, tool, version))
 	if err != nil {
 		if os.IsNotExist(err) {

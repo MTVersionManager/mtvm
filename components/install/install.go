@@ -22,7 +22,7 @@ type Model struct {
 
 type InstalledMsg bool
 
-func New(plugin mtvmplugin.Plugin, pluginName string, version string) Model {
+func New(plugin mtvmplugin.Plugin, pluginName, version string) Model {
 	progressChannel := make(chan float64)
 	downloader := downloadProgress.New(progressChannel)
 	downloader.Title = "Downloading..."
@@ -53,7 +53,7 @@ func Download(plugin mtvmplugin.Plugin, version string, progressChannel chan flo
 	}
 }
 
-func Install(plugin mtvmplugin.Plugin, installDir string, pluginName string, version string) tea.Cmd {
+func Install(plugin mtvmplugin.Plugin, installDir string, pluginName, version string) tea.Cmd {
 	return func() tea.Msg {
 		err := plugin.Install(filepath.Join(installDir, pluginName, version))
 		if err != nil {

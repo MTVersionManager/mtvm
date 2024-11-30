@@ -21,7 +21,7 @@ type removeModel struct {
 	done       bool
 }
 
-func removeInitialModel(plugin mtvmplugin.Plugin, version string, tool string) removeModel {
+func removeInitialModel(plugin mtvmplugin.Plugin, version, tool string) removeModel {
 	spin := spinner.New()
 	spin.Spinner = spinner.Dot
 	return removeModel{
