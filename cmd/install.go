@@ -13,13 +13,19 @@ import (
 )
 
 type installModel struct {
-	installer install.Model
+	installer  install.Model
+	installed  bool
+	version    string
+	pluginName string
 }
 
 func installInitialModel(plugin mtvmplugin.Plugin, pluginName string, version string) installModel {
 	downloadModel := install.New(plugin, pluginName, version)
 	return installModel{
-		installer: downloadModel,
+		installer:  downloadModel,
+		installed:  false,
+		version:    version,
+		pluginName: pluginName,
 	}
 }
 
@@ -30,6 +36,7 @@ func (m installModel) Init() tea.Cmd {
 func (m installModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg.(type) {
 	case install.InstalledMsg:
+		m.installed = true
 		return m, tea.Quit
 	}
 	var cmd tea.Cmd
@@ -38,7 +45,10 @@ func (m installModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m installModel) View() string {
-	return m.installer.View()
+	if !m.installed {
+		return m.installer.View()
+	}
+	return fmt.Sprintf("%v Installed version %v of %v\n", shared.CheckMark, m.version, m.pluginName)
 }
 
 // installCmd represents the install command
