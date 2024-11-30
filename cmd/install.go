@@ -49,7 +49,7 @@ var installCmd = &cobra.Command{
 For example:
 If you run "mtvm install go latest" it will install the latest version of go`,
 	Args:    cobra.ExactArgs(2),
-	Aliases: []string{"i"},
+	Aliases: []string{"i", "in"},
 	Run: func(cmd *cobra.Command, args []string) {
 		err := createInstallDir()
 		if err != nil {
