@@ -14,27 +14,27 @@ import (
 )
 
 type removeModel struct {
-	plugin  mtvmplugin.Plugin
-	version string
-	tool    string
-	spinner spinner.Model
-	done    bool
+	plugin     mtvmplugin.Plugin
+	version    string
+	pluginName string
+	spinner    spinner.Model
+	done       bool
 }
 
 func removeInitialModel(plugin mtvmplugin.Plugin, version string, tool string) removeModel {
 	spin := spinner.New()
 	spin.Spinner = spinner.Dot
 	return removeModel{
-		plugin:  plugin,
-		version: version,
-		tool:    tool,
-		spinner: spin,
-		done:    false,
+		plugin:     plugin,
+		version:    version,
+		pluginName: tool,
+		spinner:    spin,
+		done:       false,
 	}
 }
 
 func (m removeModel) Init() tea.Cmd {
-	return tea.Batch(m.spinner.Tick, remove(m.plugin, m.version, filepath.Join(shared.Configuration.InstallDir, m.tool), shared.Configuration.PathDir))
+	return tea.Batch(m.spinner.Tick, remove(m.plugin, m.version, filepath.Join(shared.Configuration.InstallDir, m.pluginName), shared.Configuration.PathDir))
 }
 
 func (m removeModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -54,9 +54,9 @@ func (m removeModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m removeModel) View() string {
 	if m.done {
-		return fmt.Sprintf("%v Successfully removed version %v of %v\n", shared.CheckMark, m.version, m.tool)
+		return fmt.Sprintf("%v Successfully removed version %v of %v\n", shared.CheckMark, m.version, m.pluginName)
 	}
-	return fmt.Sprintf("%v Removing version %v of %v\n", m.spinner.View(), m.version, m.tool)
+	return fmt.Sprintf("%v Removing version %v of %v\n", m.spinner.View(), m.version, m.pluginName)
 }
 
 func remove(plugin mtvmplugin.Plugin, version string, installDir string, pathDir string) tea.Cmd {
@@ -75,9 +75,9 @@ func remove(plugin mtvmplugin.Plugin, version string, installDir string, pathDir
 
 // removeCmd represents the remove command
 var removeCmd = &cobra.Command{
-	Use:   "remove [tool] [version]",
-	Short: "Removes a specified version of a tool.",
-	Long: `Removes a specified version of a tool.
+	Use:   "remove [pluginName] [version]",
+	Short: "Removes a specified version of a pluginName.",
+	Long: `Removes a specified version of a pluginName.
 For example:
 "mtvm remove go 1.23.3" removes go version 1.23.3`,
 	Args:    cobra.ExactArgs(2),

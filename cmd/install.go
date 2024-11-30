@@ -28,6 +28,10 @@ func (m installModel) Init() tea.Cmd {
 }
 
 func (m installModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	switch msg.(type) {
+	case install.InstalledMsg:
+		return m, tea.Quit
+	}
 	var cmd tea.Cmd
 	m.installer, cmd = m.installer.Update(msg)
 	return m, cmd
