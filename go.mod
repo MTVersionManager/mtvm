@@ -3,8 +3,8 @@ module github.com/MTVersionManager/mtvm
 go 1.23.3
 
 require (
-	github.com/MTVersionManager/goplugin v0.0.0-20241123220718-a0fdaa16d1fc
-	github.com/MTVersionManager/mtvmplugin v0.0.0-20241123190034-39e07c9b14ee
+	github.com/MTVersionManager/goplugin v0.0.0-20241129191057-3b297f24bb72
+	github.com/MTVersionManager/mtvmplugin v0.0.0-20241129190150-d9f58a7a95b9
 	github.com/charmbracelet/bubbles v0.20.0
 	github.com/charmbracelet/bubbletea v1.2.3
 	github.com/spf13/cobra v1.8.1
