@@ -75,9 +75,9 @@ func remove(plugin mtvmplugin.Plugin, version string, installDir string, pathDir
 
 // removeCmd represents the remove command
 var removeCmd = &cobra.Command{
-	Use:   "remove [pluginName] [version]",
-	Short: "Removes a specified version of a pluginName.",
-	Long: `Removes a specified version of a pluginName.
+	Use:   "remove [tool] [version]",
+	Short: "Removes a specified version of a tool.",
+	Long: `Removes a specified version of a tool.
 For example:
 "mtvm remove go 1.23.3" removes go version 1.23.3`,
 	Args:    cobra.ExactArgs(2),
