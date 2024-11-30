@@ -2,16 +2,22 @@ package shared
 
 import (
 	"errors"
-	"github.com/MTVersionManager/goplugin"
-	"github.com/MTVersionManager/mtvmplugin"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/MTVersionManager/goplugin"
+	"github.com/MTVersionManager/mtvmplugin"
+	"github.com/charmbracelet/lipgloss"
 
 	"github.com/MTVersionManager/mtvm/config"
 )
 
 var Configuration config.Config
+
+type SuccessMsg string
+
+var CheckMark string = lipgloss.NewStyle().Foreground(lipgloss.Color("2")).SetString("✓").String()
 
 func IsVersionInstalled(tool string, version string) (bool, error) {
 	_, err := os.Stat(filepath.Join(Configuration.InstallDir, tool, version))

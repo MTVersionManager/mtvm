@@ -71,8 +71,6 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 	case downloadProgress.DownloadedMsg:
 		m.installing = false
 		cmds = append(cmds, Install(m.plugin, shared.Configuration.InstallDir, m.pluginName, m.version))
-	case InstalledMsg:
-		return m, tea.Quit
 	}
 	var cmd tea.Cmd
 	m.spinner, cmd = m.spinner.Update(msg)
