@@ -17,7 +17,7 @@ var Configuration config.Config
 
 type SuccessMsg string
 
-var CheckMark string = lipgloss.NewStyle().Foreground(lipgloss.Color("2")).SetString("✓").String()
+var CheckMark = lipgloss.NewStyle().Foreground(lipgloss.Color("2")).SetString("✓").String()
 
 func IsVersionInstalled(tool, version string) (bool, error) {
 	_, err := os.Stat(filepath.Join(Configuration.InstallDir, tool, version))
