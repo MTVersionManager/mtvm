@@ -19,7 +19,7 @@ type installModel struct {
 	pluginName string
 }
 
-func installInitialModel(plugin mtvmplugin.Plugin, pluginName string, version string) installModel {
+func installInitialModel(plugin mtvmplugin.Plugin, pluginName, version string) installModel {
 	downloadModel := install.New(plugin, pluginName, version)
 	return installModel{
 		installer:  downloadModel,

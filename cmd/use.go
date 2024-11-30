@@ -25,7 +25,7 @@ type useInstallModel struct {
 	version    string
 }
 
-func useInstallInitialModel(plugin mtvmplugin.Plugin, pluginName string, version string) useInstallModel {
+func useInstallInitialModel(plugin mtvmplugin.Plugin, pluginName, version string) useInstallModel {
 	installer := install.New(plugin, pluginName, version)
 	spin := spinner.New()
 	spin.Spinner = spinner.Dot
