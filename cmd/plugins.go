@@ -2,12 +2,13 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/MTVersionManager/mtvm/cmd/plugincmds"
 
 	"github.com/spf13/cobra"
 )
 
-// PluginsCmd represents the plugins command
-var PluginsCmd = &cobra.Command{
+// pluginsCmd represents the plugins command
+var pluginsCmd = &cobra.Command{
 	Use:   "plugins",
 	Short: "Lists the plugins you have installed",
 	Long:  `Lists the plugins you have installed`,
@@ -17,8 +18,8 @@ var PluginsCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(PluginsCmd)
-
+	rootCmd.AddCommand(pluginsCmd)
+	pluginsCmd.AddCommand(plugincmds.InstallCmd)
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command
