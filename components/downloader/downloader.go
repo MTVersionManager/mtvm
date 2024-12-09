@@ -32,7 +32,6 @@ func (dw *downloadWriter) Start() {
 	} else {
 		_, err = io.Copy(dw.file, io.TeeReader(dw.resp.Body, dw))
 	}
-	fmt.Printf("Downloaded %d bytes\n", dw.downloadedSize)
 	// This sends a signal to the update function that it is safe to close the response body
 	dw.copyDone <- true
 	if err != nil {
@@ -129,7 +128,6 @@ func (m *Model) startDownload() tea.Cmd {
 func waitForResponseFinish(doneChan chan bool) tea.Cmd {
 	return func() tea.Msg {
 		_ = <-doneChan
-		fmt.Println("Download done")
 		return shared.SuccessMsg("download")
 	}
 }

@@ -8,7 +8,6 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/go-playground/validator/v10"
 	"github.com/spf13/cobra"
-	"log"
 	"os"
 )
 
@@ -56,7 +55,6 @@ func (m installModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case shared.SuccessMsg:
 		if msg == "download" {
-			log.Printf("Downloaded data length: %d bytes (install)", len(msg))
 			cmds = append(cmds, loadMetadataCmd(m.downloader.GetDownloadedData()))
 		}
 	case shared.PluginMetadata:
