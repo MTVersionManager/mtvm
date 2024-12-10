@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/MTVersionManager/mtvm/shared"
+	"github.com/charmbracelet/bubbles/spinner"
 	"io"
 	"log"
 	"net/http"
@@ -57,6 +58,7 @@ type Model struct {
 	writer             *downloadWriter
 	doneFuncText       string
 	contentLengthKnown bool
+	spinner            spinner.Model
 }
 
 type Option func(Model) Model
@@ -82,6 +84,8 @@ func UseTitle(title string) Option {
 func New(url string, opts ...Option) Model {
 	progressChannel := make(chan float64)
 	downloader := downloadProgress.New(progressChannel)
+	spin := spinner.New()
+	spin.Spinner = spinner.Dot
 	model := Model{
 		url:        url,
 		downloader: downloader,
@@ -90,6 +94,7 @@ func New(url string, opts ...Option) Model {
 			progressChannel: progressChannel,
 			copyDone:        make(chan bool),
 		},
+		spinner: spin,
 	}
 	for _, opt := range opts {
 		model = opt(model)
@@ -98,7 +103,7 @@ func New(url string, opts ...Option) Model {
 }
 
 func (m *Model) Init() tea.Cmd {
-	return tea.Batch(m.startDownload(), downloadProgress.WaitForProgress(m.writer.progressChannel), waitForResponseFinish(m.writer.copyDone))
+	return tea.Batch(m.startDownload(), downloadProgress.WaitForProgress(m.writer.progressChannel), waitForResponseFinish(m.writer.copyDone), m.spinner.Tick)
 }
 
 func (m *Model) startDownload() tea.Cmd {
@@ -110,10 +115,10 @@ func (m *Model) startDownload() tea.Cmd {
 		if resp.StatusCode != http.StatusOK {
 			return fmt.Errorf("%v %v", resp.StatusCode, http.StatusText(resp.StatusCode))
 		}
-		m.contentLengthKnown = true
+		contentLengthKnown := true
 		if resp.ContentLength <= 0 {
 			if resp.ContentLength == -1 {
-				m.contentLengthKnown = false
+				contentLengthKnown = false
 			} else {
 				return errors.New("error when getting content length")
 			}
@@ -121,7 +126,7 @@ func (m *Model) startDownload() tea.Cmd {
 		m.writer.totalSize = resp.ContentLength
 		m.writer.resp = resp
 		go m.writer.Start()
-		return downloadStartedMsg(true)
+		return downloadStartedMsg(contentLengthKnown)
 	}
 }
 
@@ -142,6 +147,8 @@ func (m *Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case error:
 		log.Fatal(msg)
+	case downloadStartedMsg:
+		m.contentLengthKnown = bool(msg)
 	case shared.SuccessMsg:
 		if msg == "download" {
 			err := m.writer.resp.Body.Close()
@@ -159,9 +166,18 @@ func (m *Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 	var cmd tea.Cmd
 	m.downloader, cmd = m.downloader.Update(msg)
 	cmds = append(cmds, cmd)
+	m.spinner, cmd = m.spinner.Update(msg)
+	cmds = append(cmds, cmd)
 	return *m, tea.Batch(cmds...)
 }
 
 func (m *Model) View() string {
-	return m.downloader.View()
+	if m.contentLengthKnown {
+		return m.downloader.View()
+	}
+	spinnerMsg := "Downloading..."
+	if m.downloader.Title != "" {
+		spinnerMsg = m.downloader.Title
+	}
+	return fmt.Sprintf("%v %v\n", m.spinner.View(), spinnerMsg)
 }
