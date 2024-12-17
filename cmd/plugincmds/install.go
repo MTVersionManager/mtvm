@@ -9,6 +9,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/go-playground/validator/v10"
 	"github.com/spf13/cobra"
+	"log"
 	"os"
 	"runtime"
 )
@@ -79,6 +80,8 @@ func (m installModel) Init() tea.Cmd {
 func (m installModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmds []tea.Cmd
 	switch msg := msg.(type) {
+	case error:
+		log.Fatal(msg)
 	case shared.SuccessMsg:
 		if msg == "download" {
 			cmds = append(cmds, loadMetadataCmd(m.downloader.GetDownloadedData()))
