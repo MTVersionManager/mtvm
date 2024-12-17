@@ -25,9 +25,9 @@ type PluginMetadata struct {
 	Downloads []struct {
 		OS       string `json:"os" validate:"required"`
 		Arch     string `json:"arch" validate:"required"`
-		URL      string `json:"url" validate:"required"`
+		URL      string `json:"url" validate:"required,http_url"`
 		Checksum string `json:"checksum"`
-	} `json:"downloads" validate:"required"`
+	} `json:"downloads" validate:"required,dive"`
 }
 
 func IsVersionInstalled(tool, version string) (bool, error) {
