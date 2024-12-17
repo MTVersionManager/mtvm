@@ -5,15 +5,22 @@ import (
 	"fmt"
 	"github.com/MTVersionManager/mtvm/components/downloader"
 	"github.com/MTVersionManager/mtvm/shared"
+	"github.com/Masterminds/semver/v3"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/go-playground/validator/v10"
 	"github.com/spf13/cobra"
 	"os"
+	"runtime"
 )
 
 type installModel struct {
 	downloader downloader.Model
-	step       int
+	pluginInfo pluginDownloadInfo
+}
+
+type pluginDownloadInfo struct {
+	URL     string
+	Version semver.Version
 }
 
 func initialInstallModel(url string) installModel {
@@ -46,6 +53,25 @@ func loadMetadataCmd(rawData []byte) tea.Cmd {
 	}
 }
 
+func getPluginInfoCmd(metadata shared.PluginMetadata) tea.Cmd {
+	return func() tea.Msg {
+		version, err := semver.NewVersion(metadata.Version)
+		if err != nil {
+			return err
+		}
+		var url string
+		for _, v := range metadata.Downloads {
+			if v.OS == runtime.GOOS && v.Arch == runtime.GOARCH {
+				url = v.URL
+			}
+		}
+		return pluginDownloadInfo{
+			URL:     url,
+			Version: *version,
+		}
+	}
+}
+
 func (m installModel) Init() tea.Cmd {
 	return m.downloader.Init()
 }
@@ -58,7 +84,10 @@ func (m installModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			cmds = append(cmds, loadMetadataCmd(m.downloader.GetDownloadedData()))
 		}
 	case shared.PluginMetadata:
-		fmt.Println(msg)
+		//fmt.Println(msg)
+		cmds = append(cmds, getPluginInfoCmd(msg))
+	case pluginDownloadInfo:
+		m.pluginInfo = msg
 		return m, tea.Quit
 	}
 	var cmd tea.Cmd
@@ -68,6 +97,14 @@ func (m installModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m installModel) View() string {
+	if m.pluginInfo != (pluginDownloadInfo{}) {
+		//fmt.Println("Finish")
+		if m.pluginInfo.URL == "" {
+			return "Sadly, that plugin does not provide a download for your system."
+		}
+		return fmt.Sprintf("Plugin version: %v\nPlugin URL: %v\n", m.pluginInfo.Version, m.pluginInfo.URL)
+	}
+	//fmt.Println("Download")
 	return m.downloader.View() + "\n"
 }
 
