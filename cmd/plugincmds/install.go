@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/MTVersionManager/mtvm/components/downloader"
+	"github.com/MTVersionManager/mtvm/components/fatalhandler"
 	"github.com/MTVersionManager/mtvm/shared"
 	"github.com/Masterminds/semver/v3"
 	tea "github.com/charmbracelet/bubbletea"
@@ -15,8 +16,9 @@ import (
 )
 
 type installModel struct {
-	downloader downloader.Model
-	pluginInfo pluginDownloadInfo
+	downloader   downloader.Model
+	pluginInfo   pluginDownloadInfo
+	errorHandler fatalhandler.Model
 }
 
 type pluginDownloadInfo struct {
@@ -80,8 +82,11 @@ func (m installModel) Init() tea.Cmd {
 func (m installModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmds []tea.Cmd
 	switch msg := msg.(type) {
-	case error:
-		log.Fatal(msg)
+	case tea.KeyMsg:
+		switch msg.String() {
+		case "ctrl+c", "q":
+			return m, m.downloader.StopDownload()
+		}
 	case shared.SuccessMsg:
 		if msg == "download" {
 			cmds = append(cmds, loadMetadataCmd(m.downloader.GetDownloadedData()))
@@ -94,6 +99,8 @@ func (m installModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, tea.Quit
 	}
 	var cmd tea.Cmd
+	m.errorHandler, cmd = m.errorHandler.Update(msg)
+	cmds = append(cmds, cmd)
 	m.downloader, cmd = m.downloader.Update(msg)
 	cmds = append(cmds, cmd)
 	return m, tea.Batch(cmds...)
@@ -124,8 +131,14 @@ var InstallCmd = &cobra.Command{
 			os.Exit(1)
 		}
 		p := tea.NewProgram(initialInstallModel(args[0]))
-		if _, err := p.Run(); err != nil {
+		if model, err := p.Run(); err != nil {
 			fmt.Printf("Alas, there's been an error: %v", err)
+		} else {
+			if model, ok := model.(installModel); ok {
+				fatalhandler.Handle(model.errorHandler)
+			} else {
+				log.Fatal("Unexpected model type")
+			}
 		}
 	},
 }

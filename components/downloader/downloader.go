@@ -1,6 +1,7 @@
 package downloader
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"github.com/MTVersionManager/mtvm/shared"
@@ -24,7 +25,10 @@ type downloadWriter struct {
 	downloadedData  []byte
 }
 
-type downloadStartedMsg bool
+type downloadStartedMsg struct {
+	contentLengthKnown bool
+	cancel             context.CancelFunc
+}
 
 func (dw *downloadWriter) Start() {
 	var err error
@@ -35,7 +39,8 @@ func (dw *downloadWriter) Start() {
 	}
 	// This sends a signal to the update function that it is safe to close the response body
 	dw.copyDone <- true
-	if err != nil {
+	if err != nil && !errors.Is(err, context.Canceled) {
+		fmt.Println("Error from copying")
 		log.Fatal(err)
 	}
 }
@@ -59,6 +64,7 @@ type Model struct {
 	doneFuncText       string
 	contentLengthKnown bool
 	spinner            spinner.Model
+	Cancel             context.CancelFunc
 }
 
 type Option func(Model) Model
@@ -103,31 +109,40 @@ func New(url string, opts ...Option) Model {
 }
 
 func (m *Model) Init() tea.Cmd {
-	return tea.Batch(m.startDownload(), downloadProgress.WaitForProgress(m.writer.progressChannel), waitForResponseFinish(m.writer.copyDone), m.spinner.Tick)
+	return tea.Batch(m.startDownload, downloadProgress.WaitForProgress(m.writer.progressChannel), waitForResponseFinish(m.writer.copyDone), m.spinner.Tick)
 }
 
-func (m *Model) startDownload() tea.Cmd {
-	return func() tea.Msg {
-		resp, err := http.Get(m.url)
-		if err != nil {
-			return err
-		}
-		if resp.StatusCode != http.StatusOK {
-			return fmt.Errorf("%v %v", resp.StatusCode, http.StatusText(resp.StatusCode))
-		}
-		contentLengthKnown := true
-		if resp.ContentLength <= 0 {
-			if resp.ContentLength == -1 {
-				contentLengthKnown = false
-			} else {
-				return errors.New("error when getting content length")
-			}
-		}
-		m.writer.totalSize = resp.ContentLength
-		m.writer.resp = resp
-		go m.writer.Start()
-		return downloadStartedMsg(contentLengthKnown)
+func (m *Model) startDownload() tea.Msg {
+	ctx, cancel := context.WithCancel(context.Background())
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, m.url, nil)
+	if err != nil {
+		cancel()
+		return err
 	}
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		cancel()
+		return err
+	}
+	if resp.StatusCode != http.StatusOK {
+		cancel()
+		return fmt.Errorf("%v %v", resp.StatusCode, http.StatusText(resp.StatusCode))
+	}
+	contentLengthKnown := true
+	if resp.ContentLength <= 0 {
+		if resp.ContentLength == -1 {
+			contentLengthKnown = false
+		} else {
+			cancel()
+			return errors.New("error when getting content length")
+		}
+	}
+	m.writer.totalSize = resp.ContentLength
+	m.writer.resp = resp
+	go m.writer.Start()
+	return downloadStartedMsg{
+		contentLengthKnown: contentLengthKnown,
+		cancel:             cancel}
 }
 
 func waitForResponseFinish(doneChan chan bool) tea.Cmd {
@@ -145,12 +160,14 @@ func (m *Model) GetDownloadedData() []byte {
 func (m *Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 	var cmds []tea.Cmd
 	switch msg := msg.(type) {
-	case error:
-		log.Fatal(msg)
+	//case error:
+	//	log.Fatal(msg)
 	case downloadStartedMsg:
-		m.contentLengthKnown = bool(msg)
+		m.contentLengthKnown = msg.contentLengthKnown
+		m.Cancel = msg.cancel
 	case shared.SuccessMsg:
 		if msg == "download" {
+			m.Cancel()
 			err := m.writer.resp.Body.Close()
 			if err != nil {
 				log.Fatal(err)
@@ -180,4 +197,11 @@ func (m *Model) View() string {
 		spinnerMsg = m.downloader.Title
 	}
 	return fmt.Sprintf("%v %v\n", m.spinner.View(), spinnerMsg)
+}
+
+func (m Model) StopDownload() tea.Cmd {
+	return func() tea.Msg {
+		m.Cancel()
+		return nil
+	}
 }
