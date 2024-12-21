@@ -30,6 +30,8 @@ type downloadStartedMsg struct {
 	cancel             context.CancelFunc
 }
 
+type downloadCancelledMsg bool
+
 func (dw *downloadWriter) Start() {
 	var err error
 	if dw.file == nil {
@@ -64,7 +66,8 @@ type Model struct {
 	doneFuncText       string
 	contentLengthKnown bool
 	spinner            spinner.Model
-	Cancel             context.CancelFunc
+	cancel             context.CancelFunc
+	Canceled           bool
 }
 
 type Option func(Model) Model
@@ -164,10 +167,10 @@ func (m *Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 	//	log.Fatal(msg)
 	case downloadStartedMsg:
 		m.contentLengthKnown = msg.contentLengthKnown
-		m.Cancel = msg.cancel
+		m.cancel = msg.cancel
 	case shared.SuccessMsg:
 		if msg == "download" {
-			m.Cancel()
+			m.cancel()
 			err := m.writer.resp.Body.Close()
 			if err != nil {
 				log.Fatal(err)
@@ -179,6 +182,8 @@ func (m *Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 				}
 			}
 		}
+	case downloadCancelledMsg:
+		m.Canceled = true
 	}
 	var cmd tea.Cmd
 	m.downloader, cmd = m.downloader.Update(msg)
@@ -201,7 +206,7 @@ func (m *Model) View() string {
 
 func (m Model) StopDownload() tea.Cmd {
 	return func() tea.Msg {
-		m.Cancel()
-		return nil
+		m.cancel()
+		return downloadCancelledMsg(true)
 	}
 }
