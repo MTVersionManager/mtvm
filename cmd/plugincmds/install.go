@@ -33,8 +33,8 @@ func initialInstallModel(url string) installModel {
 	}
 }
 
-func loadMetadata(rawData []byte) (plugin.PluginMetadata, error) {
-	var metadata plugin.PluginMetadata
+func loadMetadata(rawData []byte) (plugin.Metadata, error) {
+	var metadata plugin.Metadata
 	err := json.Unmarshal(rawData, &metadata)
 	if err != nil {
 		return metadata, err
@@ -57,7 +57,7 @@ func loadMetadataCmd(rawData []byte) tea.Cmd {
 	}
 }
 
-func getPluginInfoCmd(metadata plugin.PluginMetadata) tea.Cmd {
+func getPluginInfoCmd(metadata plugin.Metadata) tea.Cmd {
 	return func() tea.Msg {
 		version, err := semver.NewVersion(metadata.Version)
 		if err != nil {
@@ -92,7 +92,7 @@ func (m installModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if msg == "download" {
 			cmds = append(cmds, loadMetadataCmd(m.downloader.GetDownloadedData()))
 		}
-	case plugin.PluginMetadata:
+	case plugin.Metadata:
 		//fmt.Println(msg)
 		cmds = append(cmds, getPluginInfoCmd(msg))
 	case pluginDownloadInfo:
