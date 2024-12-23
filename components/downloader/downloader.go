@@ -63,7 +63,6 @@ type Model struct {
 	downloader         downloadProgress.Model
 	progress           float64
 	writer             *downloadWriter
-	doneFuncText       string
 	contentLengthKnown bool
 	spinner            spinner.Model
 	cancel             context.CancelFunc
@@ -150,7 +149,7 @@ func (m *Model) startDownload() tea.Msg {
 
 func waitForResponseFinish(doneChan chan bool) tea.Cmd {
 	return func() tea.Msg {
-		_ = <-doneChan
+		<-doneChan
 		return shared.SuccessMsg("download")
 	}
 }
