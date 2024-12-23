@@ -24,6 +24,7 @@ type installModel struct {
 
 type pluginDownloadInfo struct {
 	URL     string
+	Name    string
 	Version semver.Version
 }
 
@@ -71,6 +72,7 @@ func getPluginInfoCmd(metadata plugin.Metadata) tea.Cmd {
 		}
 		return pluginDownloadInfo{
 			URL:     url,
+			Name:    metadata.Name,
 			Version: *version,
 		}
 	}
@@ -113,7 +115,15 @@ func (m installModel) View() string {
 		if m.pluginInfo.URL == "" {
 			return "Sadly, that plugin does not provide a download for your system."
 		}
-		return fmt.Sprintf("Plugin version: %v\nPlugin URL: %v\n", m.pluginInfo.Version, m.pluginInfo.URL)
+		rawJson, err := json.MarshalIndent(plugin.Entry{
+			Name:        m.pluginInfo.Name,
+			Version:     m.pluginInfo.Version.String(),
+			MetadataUrl: m.downloader.GetUrl(),
+		}, "", "	")
+		if err != nil {
+			log.Fatal(err)
+		}
+		return fmt.Sprintf("Plugin version: %v\nPlugin URL: %v\nJson:\n%v\n", m.pluginInfo.Version, m.pluginInfo.URL, string(rawJson))
 	}
 	//fmt.Println("Download")
 	return m.downloader.View() + "\n"

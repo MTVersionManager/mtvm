@@ -210,3 +210,7 @@ func (m Model) StopDownload() tea.Cmd {
 		return downloadCancelledMsg(true)
 	}
 }
+
+func (m Model) GetUrl() string {
+	return m.url
+}
