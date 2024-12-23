@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/MTVersionManager/mtvm/components/downloader"
 	"github.com/MTVersionManager/mtvm/components/fatalhandler"
+	"github.com/MTVersionManager/mtvm/plugin"
 	"github.com/MTVersionManager/mtvm/shared"
 	"github.com/Masterminds/semver/v3"
 	tea "github.com/charmbracelet/bubbletea"
@@ -32,8 +33,8 @@ func initialInstallModel(url string) installModel {
 	}
 }
 
-func loadMetadata(rawData []byte) (shared.PluginMetadata, error) {
-	var metadata shared.PluginMetadata
+func loadMetadata(rawData []byte) (plugin.PluginMetadata, error) {
+	var metadata plugin.PluginMetadata
 	err := json.Unmarshal(rawData, &metadata)
 	if err != nil {
 		return metadata, err
@@ -56,7 +57,7 @@ func loadMetadataCmd(rawData []byte) tea.Cmd {
 	}
 }
 
-func getPluginInfoCmd(metadata shared.PluginMetadata) tea.Cmd {
+func getPluginInfoCmd(metadata plugin.PluginMetadata) tea.Cmd {
 	return func() tea.Msg {
 		version, err := semver.NewVersion(metadata.Version)
 		if err != nil {
@@ -91,7 +92,7 @@ func (m installModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if msg == "download" {
 			cmds = append(cmds, loadMetadataCmd(m.downloader.GetDownloadedData()))
 		}
-	case shared.PluginMetadata:
+	case plugin.PluginMetadata:
 		//fmt.Println(msg)
 		cmds = append(cmds, getPluginInfoCmd(msg))
 	case pluginDownloadInfo:

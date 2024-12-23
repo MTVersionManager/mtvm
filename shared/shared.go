@@ -19,17 +19,6 @@ type SuccessMsg string
 
 var CheckMark = lipgloss.NewStyle().Foreground(lipgloss.Color("2")).SetString("✓").String()
 
-type PluginMetadata struct {
-	Name      string `json:"name" validate:"required"`
-	Version   string `json:"version" validate:"required,semver"`
-	Downloads []struct {
-		OS       string `json:"os" validate:"required"`
-		Arch     string `json:"arch" validate:"required"`
-		URL      string `json:"url" validate:"required,http_url"`
-		Checksum string `json:"checksum"`
-	} `json:"downloads" validate:"required,dive"`
-}
-
 func IsVersionInstalled(tool, version string) (bool, error) {
 	_, err := os.Stat(filepath.Join(Configuration.InstallDir, tool, version))
 	if err != nil {
