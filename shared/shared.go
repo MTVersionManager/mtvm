@@ -21,7 +21,7 @@ var CheckMark = lipgloss.NewStyle().Foreground(lipgloss.Color("2")).SetString("â
 
 type PluginMetadata struct {
 	Name      string `json:"name" validate:"required"`
-	Version   string `json:"version" validate:"required"`
+	Version   string `json:"version" validate:"required,semver"`
 	Downloads []struct {
 		OS       string `json:"os" validate:"required"`
 		Arch     string `json:"arch" validate:"required"`
