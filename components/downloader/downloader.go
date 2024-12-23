@@ -110,11 +110,11 @@ func New(url string, opts ...Option) Model {
 	return model
 }
 
-func (m *Model) Init() tea.Cmd {
+func (m Model) Init() tea.Cmd {
 	return tea.Batch(m.startDownload, downloadProgress.WaitForProgress(m.writer.progressChannel), waitForResponseFinish(m.writer.copyDone), m.spinner.Tick)
 }
 
-func (m *Model) startDownload() tea.Msg {
+func (m Model) startDownload() tea.Msg {
 	ctx, cancel := context.WithCancel(context.Background())
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, m.url, nil)
 	if err != nil {
@@ -155,11 +155,11 @@ func waitForResponseFinish(doneChan chan bool) tea.Cmd {
 }
 
 // GetDownloadedData returns the data that was downloaded. It will return an empty slice if the download is not finished.
-func (m *Model) GetDownloadedData() []byte {
+func (m Model) GetDownloadedData() []byte {
 	return m.writer.downloadedData
 }
 
-func (m *Model) Update(msg tea.Msg) (Model, tea.Cmd) {
+func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 	var cmds []tea.Cmd
 	switch msg := msg.(type) {
 	//case error:
@@ -189,10 +189,10 @@ func (m *Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 	cmds = append(cmds, cmd)
 	m.spinner, cmd = m.spinner.Update(msg)
 	cmds = append(cmds, cmd)
-	return *m, tea.Batch(cmds...)
+	return m, tea.Batch(cmds...)
 }
 
-func (m *Model) View() string {
+func (m Model) View() string {
 	if m.contentLengthKnown {
 		return m.downloader.View()
 	}
