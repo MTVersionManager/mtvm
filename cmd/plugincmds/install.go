@@ -123,7 +123,11 @@ func (m installModel) View() string {
 		if err != nil {
 			log.Fatal(err)
 		}
-		return fmt.Sprintf("Plugin version: %v\nPlugin URL: %v\nJson:\n%v\n", m.pluginInfo.Version, m.pluginInfo.URL, string(rawJson))
+		return fmt.Sprintf(`Plugin version: %v
+Plugin URL: %v
+Json:
+%v
+`, m.pluginInfo.Version, m.pluginInfo.URL, string(rawJson))
 	}
 	//fmt.Println("Download")
 	return m.downloader.View() + "\n"
