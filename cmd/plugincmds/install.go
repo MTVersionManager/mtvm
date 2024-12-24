@@ -91,15 +91,22 @@ func (m installModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, m.downloader.StopDownload()
 		}
 	case shared.SuccessMsg:
-		if msg == "download" {
+		switch msg {
+		case "download":
 			cmds = append(cmds, loadMetadataCmd(m.downloader.GetDownloadedData()))
+		case "UpdateEntries":
+			return m, tea.Quit
 		}
 	case plugin.Metadata:
 		//fmt.Println(msg)
 		cmds = append(cmds, getPluginInfoCmd(msg))
 	case pluginDownloadInfo:
 		m.pluginInfo = msg
-		return m, tea.Quit
+		cmds = append(cmds, plugin.UpdateEntriesCmd(plugin.Entry{
+			Name:        m.pluginInfo.Name,
+			Version:     m.pluginInfo.Version.String(),
+			MetadataUrl: m.downloader.GetUrl(),
+		}))
 	}
 	var cmd tea.Cmd
 	m.errorHandler, cmd = m.errorHandler.Update(msg)
@@ -115,19 +122,9 @@ func (m installModel) View() string {
 		if m.pluginInfo.URL == "" {
 			return "Sadly, that plugin does not provide a download for your system."
 		}
-		rawJson, err := json.MarshalIndent(plugin.Entry{
-			Name:        m.pluginInfo.Name,
-			Version:     m.pluginInfo.Version.String(),
-			MetadataUrl: m.downloader.GetUrl(),
-		}, "", "	")
-		if err != nil {
-			log.Fatal(err)
-		}
 		return fmt.Sprintf(`Plugin version: %v
 Plugin URL: %v
-Json:
-%v
-`, m.pluginInfo.Version, m.pluginInfo.URL, string(rawJson))
+`, m.pluginInfo.Version, m.pluginInfo.URL)
 	}
 	//fmt.Println("Download")
 	return m.downloader.View() + "\n"
