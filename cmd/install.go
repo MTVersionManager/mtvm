@@ -94,7 +94,7 @@ If you run "mtvm install go latest" it will install the latest version of go`,
 }
 
 func createInstallDir() error {
-	err := os.MkdirAll(shared.Configuration.InstallDir, 0755)
+	err := os.MkdirAll(shared.Configuration.InstallDir, 0777)
 	if err != nil && !os.IsExist(err) {
 		return err
 	}

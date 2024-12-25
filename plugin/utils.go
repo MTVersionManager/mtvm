@@ -13,7 +13,7 @@ func UpdateEntries(entry Entry) error {
 	if err != nil {
 		return err
 	}
-	err = os.MkdirAll(configDir, 0644)
+	err = os.MkdirAll(configDir, 0666)
 	if err != nil {
 		return err
 	}

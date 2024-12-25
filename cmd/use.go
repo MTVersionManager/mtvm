@@ -154,7 +154,7 @@ So if you run go version it will print the version number 1.23.3`,
 }
 
 func createPathDir() error {
-	err := os.MkdirAll(shared.Configuration.PathDir, 0755)
+	err := os.MkdirAll(shared.Configuration.PathDir, 0777)
 	if err != nil && !os.IsExist(err) {
 		return err
 	}
