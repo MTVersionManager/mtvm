@@ -3,6 +3,10 @@ package plugincmds
 import (
 	"encoding/json"
 	"fmt"
+	"log"
+	"os"
+	"runtime"
+
 	"github.com/MTVersionManager/mtvm/components/downloader"
 	"github.com/MTVersionManager/mtvm/components/fatalhandler"
 	"github.com/MTVersionManager/mtvm/plugin"
@@ -11,9 +15,6 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/go-playground/validator/v10"
 	"github.com/spf13/cobra"
-	"log"
-	"os"
-	"runtime"
 )
 
 type installModel struct {
@@ -103,7 +104,7 @@ func (m installModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Quit
 		}
 	case plugin.Metadata:
-		//fmt.Println(msg)
+		// fmt.Println(msg)
 		cmds = append(cmds, getPluginInfoCmd(msg))
 	case pluginDownloadInfo:
 		m.pluginInfo = msg
@@ -148,7 +149,7 @@ func (m installModel) View() string {
 		if m.versionInstalled {
 			return fmt.Sprintf("You already have the latest version of the %v plugin installed.\nUse the --force or -f flag to reinstall it.\n", m.pluginInfo.Name)
 		}
-		//fmt.Println("Finish")
+		// fmt.Println("Finish")
 		if m.pluginInfo.URL == "" {
 			return "Sadly, that plugin does not provide a download for your system."
 		}
@@ -156,7 +157,7 @@ func (m installModel) View() string {
 Plugin URL: %v
 `, m.pluginInfo.Version, m.pluginInfo.URL)
 	}
-	//fmt.Println("Download")
+	// fmt.Println("Download")
 	return m.downloader.View() + "\n"
 }
 

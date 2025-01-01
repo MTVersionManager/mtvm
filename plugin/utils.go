@@ -3,9 +3,10 @@ package plugin
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/MTVersionManager/mtvm/config"
 	"os"
 	"path/filepath"
+
+	"github.com/MTVersionManager/mtvm/config"
 )
 
 // UpdateEntries updates the data of an entry if it exists, and adds an entry if it doesn't
@@ -14,7 +15,7 @@ func UpdateEntries(entry Entry) error {
 	if err != nil {
 		return err
 	}
-	err = os.MkdirAll(configDir, 0666)
+	err = os.MkdirAll(configDir, 0o666)
 	if err != nil {
 		return err
 	}
@@ -44,7 +45,7 @@ func UpdateEntries(entry Entry) error {
 	if err != nil {
 		return err
 	}
-	return os.WriteFile(filepath.Join(configDir, "plugins.json"), data, 0666)
+	return os.WriteFile(filepath.Join(configDir, "plugins.json"), data, 0o666)
 }
 
 // InstalledVersion returns the current version of a plugin that is installed.

@@ -5,8 +5,10 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-type ProgressMsg float64
-type DownloadedMsg bool
+type (
+	ProgressMsg   float64
+	DownloadedMsg bool
+)
 
 type Model struct {
 	Title           string

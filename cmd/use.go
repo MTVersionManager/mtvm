@@ -2,15 +2,16 @@ package cmd
 
 import (
 	"fmt"
+	"log"
+	"os"
+	"path/filepath"
+	"strings"
+
 	"github.com/MTVersionManager/mtvm/components/install"
 	"github.com/MTVersionManager/mtvm/shared"
 	"github.com/MTVersionManager/mtvmplugin"
 	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
-	"log"
-	"os"
-	"path/filepath"
-	"strings"
 
 	"github.com/spf13/cobra"
 )
@@ -63,6 +64,7 @@ func (m useInstallModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	cmds = append(cmds, cmd)
 	return m, tea.Batch(cmds...)
 }
+
 func (m useInstallModel) View() string {
 	if !m.installed {
 		return m.install.View()
@@ -154,7 +156,7 @@ So if you run go version it will print the version number 1.23.3`,
 }
 
 func createPathDir() error {
-	err := os.MkdirAll(shared.Configuration.PathDir, 0777)
+	err := os.MkdirAll(shared.Configuration.PathDir, 0o777)
 	if err != nil && !os.IsExist(err) {
 		return err
 	}

@@ -4,12 +4,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/MTVersionManager/mtvm/shared"
-	"github.com/charmbracelet/bubbles/spinner"
 	"io"
 	"log"
 	"net/http"
 	"os"
+
+	"github.com/MTVersionManager/mtvm/shared"
+	"github.com/charmbracelet/bubbles/spinner"
 
 	"github.com/MTVersionManager/mtvm/components/downloadProgress"
 	tea "github.com/charmbracelet/bubbletea"
@@ -144,7 +145,8 @@ func (m Model) startDownload() tea.Msg {
 	go m.writer.Start()
 	return downloadStartedMsg{
 		contentLengthKnown: contentLengthKnown,
-		cancel:             cancel}
+		cancel:             cancel,
+	}
 }
 
 func waitForResponseFinish(doneChan chan bool) tea.Cmd {
@@ -162,7 +164,7 @@ func (m Model) GetDownloadedData() []byte {
 func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 	var cmds []tea.Cmd
 	switch msg := msg.(type) {
-	//case error:
+	// case error:
 	//	log.Fatal(msg)
 	case downloadStartedMsg:
 		m.contentLengthKnown = msg.contentLengthKnown

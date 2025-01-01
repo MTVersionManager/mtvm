@@ -2,14 +2,15 @@ package cmd
 
 import (
 	"fmt"
+	"log"
+	"os"
+	"strings"
+
 	"github.com/MTVersionManager/mtvm/components/install"
 	"github.com/MTVersionManager/mtvm/shared"
 	"github.com/MTVersionManager/mtvmplugin"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/spf13/cobra"
-	"log"
-	"os"
-	"strings"
 )
 
 type installModel struct {
@@ -94,7 +95,7 @@ If you run "mtvm install go latest" it will install the latest version of go`,
 }
 
 func createInstallDir() error {
-	err := os.MkdirAll(shared.Configuration.InstallDir, 0777)
+	err := os.MkdirAll(shared.Configuration.InstallDir, 0o777)
 	if err != nil && !os.IsExist(err) {
 		return err
 	}

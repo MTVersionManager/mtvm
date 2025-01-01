@@ -1,10 +1,11 @@
 package cmd
 
 import (
-	"github.com/MTVersionManager/mtvm/config"
-	"github.com/MTVersionManager/mtvm/shared"
 	"log"
 	"os"
+
+	"github.com/MTVersionManager/mtvm/config"
+	"github.com/MTVersionManager/mtvm/shared"
 
 	"github.com/spf13/cobra"
 )

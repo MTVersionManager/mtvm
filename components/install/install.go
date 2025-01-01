@@ -1,13 +1,14 @@
 package install
 
 import (
+	"log"
+	"path/filepath"
+
 	"github.com/MTVersionManager/mtvm/components/downloadProgress"
 	"github.com/MTVersionManager/mtvm/shared"
 	"github.com/MTVersionManager/mtvmplugin"
 	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
-	"log"
-	"path/filepath"
 )
 
 type Model struct {
