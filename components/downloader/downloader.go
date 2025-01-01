@@ -142,6 +142,9 @@ func (m Model) startDownload() tea.Msg {
 	}
 	m.writer.totalSize = resp.ContentLength
 	m.writer.resp = resp
+	if contentLengthKnown && m.writer.file == nil {
+		m.writer.downloadedData = make([]byte, 0, m.writer.totalSize)
+	}
 	go m.writer.Start()
 	return downloadStartedMsg{
 		contentLengthKnown: contentLengthKnown,
