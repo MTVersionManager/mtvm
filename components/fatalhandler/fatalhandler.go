@@ -9,6 +9,7 @@ type Model struct {
 	err error
 }
 
+// Update should only be called if there is an error.
 func (m Model) Update(err error) (Model, tea.Cmd) {
 	m.err = err
 	return m, tea.Quit
