@@ -24,7 +24,7 @@ func InstalledVersionCmd(pluginName string) tea.Cmd {
 	return func() tea.Msg {
 		version, err := InstalledVersion(pluginName)
 		if err != nil {
-			if !errors.Is(err, NotFoundError) {
+			if !errors.Is(err, ErrNotFound) {
 				return err
 			}
 			return NotFoundMsg(pluginName)

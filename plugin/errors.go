@@ -2,4 +2,4 @@ package plugin
 
 import "errors"
 
-var NotFoundError = errors.New("plugin not found")
+var ErrNotFound = errors.New("plugin not found")

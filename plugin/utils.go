@@ -49,7 +49,7 @@ func UpdateEntries(entry Entry) error {
 }
 
 // InstalledVersion returns the current version of a plugin that is installed.
-// Returns an error if the version is not found.
+// Returns an ErrNotFound if the version is not found.
 func InstalledVersion(pluginName string) (string, error) {
 	configDir, err := config.GetConfigDir()
 	if err != nil {
@@ -69,5 +69,5 @@ func InstalledVersion(pluginName string) (string, error) {
 			return v.Version, nil
 		}
 	}
-	return "", fmt.Errorf("%w: %s", NotFoundError, pluginName)
+	return "", fmt.Errorf("%w: %s", ErrNotFound, pluginName)
 }

@@ -159,7 +159,7 @@ func waitForResponseFinish(doneChan chan bool) tea.Cmd {
 	}
 }
 
-// GetDownloadedData returns the data that was downloaded. It will return an empty slice if the download is not finished.
+// GetDownloadedData returns the data that was downloaded.
 func (m Model) GetDownloadedData() []byte {
 	return m.writer.downloadedData
 }
@@ -167,8 +167,6 @@ func (m Model) GetDownloadedData() []byte {
 func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 	var cmds []tea.Cmd
 	switch msg := msg.(type) {
-	// case error:
-	//	log.Fatal(msg)
 	case downloadStartedMsg:
 		m.contentLengthKnown = msg.contentLengthKnown
 		m.cancel = msg.cancel
