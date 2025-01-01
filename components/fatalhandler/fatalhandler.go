@@ -9,12 +9,9 @@ type Model struct {
 	err error
 }
 
-func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
-	if msg, ok := msg.(error); ok {
-		m.err = msg
-		return m, tea.Quit
-	}
-	return m, nil
+func (m Model) Update(err error) (Model, tea.Cmd) {
+	m.err = err
+	return m, tea.Quit
 }
 
 func Handle(m Model) {

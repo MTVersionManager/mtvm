@@ -17,9 +17,10 @@ import (
 )
 
 type installModel struct {
-	downloader   downloader.Model
-	pluginInfo   pluginDownloadInfo
-	errorHandler fatalhandler.Model
+	downloader       downloader.Model
+	pluginInfo       pluginDownloadInfo
+	errorHandler     fatalhandler.Model
+	versionInstalled bool
 }
 
 type pluginDownloadInfo struct {
@@ -84,7 +85,11 @@ func (m installModel) Init() tea.Cmd {
 
 func (m installModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmds []tea.Cmd
+	var cmd tea.Cmd
 	switch msg := msg.(type) {
+	case error:
+		m.errorHandler, cmd = m.errorHandler.Update(msg)
+		cmds = append(cmds, cmd)
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "ctrl+c", "q":
@@ -102,15 +107,37 @@ func (m installModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		cmds = append(cmds, getPluginInfoCmd(msg))
 	case pluginDownloadInfo:
 		m.pluginInfo = msg
+		forceFlagUsed, err := InstallCmd.Flags().GetBool("force")
+		if err != nil {
+			m.errorHandler, cmd = m.errorHandler.Update(err)
+			cmds = append(cmds, cmd)
+		}
+		if forceFlagUsed {
+			cmds = append(cmds, plugin.UpdateEntriesCmd(plugin.Entry{
+				Name:        m.pluginInfo.Name,
+				Version:     m.pluginInfo.Version.String(),
+				MetadataUrl: m.downloader.GetUrl(),
+			}))
+		} else {
+			cmds = append(cmds, plugin.InstalledVersionCmd(msg.Name))
+		}
+	case plugin.VersionMsg:
+		if m.pluginInfo.Version.String() == string(msg) {
+			m.versionInstalled = true
+			return m, tea.Quit
+		}
+		cmds = append(cmds, plugin.UpdateEntriesCmd(plugin.Entry{
+			Name:        m.pluginInfo.Name,
+			Version:     m.pluginInfo.Version.String(),
+			MetadataUrl: m.downloader.GetUrl(),
+		}))
+	case plugin.NotFoundMsg:
 		cmds = append(cmds, plugin.UpdateEntriesCmd(plugin.Entry{
 			Name:        m.pluginInfo.Name,
 			Version:     m.pluginInfo.Version.String(),
 			MetadataUrl: m.downloader.GetUrl(),
 		}))
 	}
-	var cmd tea.Cmd
-	m.errorHandler, cmd = m.errorHandler.Update(msg)
-	cmds = append(cmds, cmd)
 	m.downloader, cmd = m.downloader.Update(msg)
 	cmds = append(cmds, cmd)
 	return m, tea.Batch(cmds...)
@@ -118,6 +145,9 @@ func (m installModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m installModel) View() string {
 	if m.pluginInfo != (pluginDownloadInfo{}) {
+		if m.versionInstalled {
+			return fmt.Sprintf("You already have the latest version of the %v plugin installed.\nUse the --force or -f flag to reinstall it.\n", m.pluginInfo.Name)
+		}
 		//fmt.Println("Finish")
 		if m.pluginInfo.URL == "" {
 			return "Sadly, that plugin does not provide a download for your system."
@@ -153,4 +183,8 @@ var InstallCmd = &cobra.Command{
 			}
 		}
 	},
+}
+
+func init() {
+	InstallCmd.Flags().BoolP("force", "f", false, "force install a plugin")
 }

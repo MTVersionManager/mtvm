@@ -1,6 +1,7 @@
 package plugin
 
 import (
+	"errors"
 	"github.com/MTVersionManager/mtvm/shared"
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -13,5 +14,20 @@ func UpdateEntriesCmd(entry Entry) tea.Cmd {
 			return err
 		}
 		return shared.SuccessMsg("UpdateEntries")
+	}
+}
+
+// InstalledVersionCmd returns a VersionMsg on success,
+// a NotFoundMsg with the plugin name if the plugin isn't found, and an error on failure
+func InstalledVersionCmd(pluginName string) tea.Cmd {
+	return func() tea.Msg {
+		version, err := InstalledVersion(pluginName)
+		if err != nil {
+			if !errors.Is(err, NotFoundError) {
+				return err
+			}
+			return NotFoundMsg(pluginName)
+		}
+		return VersionMsg(version)
 	}
 }

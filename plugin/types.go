@@ -1,5 +1,11 @@
 package plugin
 
+// NotFoundMsg contains the name of the plugin that is not found
+type NotFoundMsg string
+
+// VersionMsg contains the version that was found
+type VersionMsg string
+
 type Metadata struct {
 	Name      string `json:"name" validate:"required"`
 	Version   string `json:"version" validate:"required,semver"`

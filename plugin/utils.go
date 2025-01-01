@@ -2,6 +2,7 @@ package plugin
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/MTVersionManager/mtvm/config"
 	"os"
 	"path/filepath"
@@ -44,4 +45,28 @@ func UpdateEntries(entry Entry) error {
 		return err
 	}
 	return os.WriteFile(filepath.Join(configDir, "plugins.json"), data, 0666)
+}
+
+// InstalledVersion returns the current version of a plugin that is installed.
+// Returns an error if the version is not found.
+func InstalledVersion(pluginName string) (string, error) {
+	configDir, err := config.GetConfigDir()
+	if err != nil {
+		return "", err
+	}
+	data, err := os.ReadFile(filepath.Join(configDir, "plugins.json"))
+	if err != nil {
+		return "", err
+	}
+	var entries []Entry
+	err = json.Unmarshal(data, &entries)
+	if err != nil {
+		return "", err
+	}
+	for _, v := range entries {
+		if v.Name == pluginName {
+			return v.Version, nil
+		}
+	}
+	return "", fmt.Errorf("%w: %s", NotFoundError, pluginName)
 }
