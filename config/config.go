@@ -1,9 +1,9 @@
 package config
 
 import (
-	"github.com/spf13/viper"
-	"os"
 	"path/filepath"
+
+	"github.com/spf13/viper"
 )
 
 // Config is the application configuration
@@ -21,11 +21,11 @@ func isNotExist(err error) bool {
 
 // GetConfig loads the configuration into a Config struct
 func GetConfig() (Config, error) {
-	configDir, err := os.UserConfigDir()
+	configDir, err := GetConfigDir()
 	if err != nil {
 		return Config{}, err
 	}
-	viper.SetDefault("pluginDir", filepath.Join(configDir, "mtvm", "plugins"))
+	viper.SetDefault("pluginDir", filepath.Join(configDir, "plugins"))
 	defInstalldir, err := DefaultInstallDir()
 	if err != nil {
 		return Config{}, err
@@ -38,7 +38,7 @@ func GetConfig() (Config, error) {
 	viper.SetDefault("pathDir", defPathDir)
 	viper.SetConfigName("config")
 	viper.SetConfigType("json")
-	viper.AddConfigPath(configDir + string(os.PathSeparator) + "mtvm")
+	viper.AddConfigPath(configDir)
 	err = viper.ReadInConfig()
 	if err != nil && !isNotExist(err) {
 		return Config{}, err
