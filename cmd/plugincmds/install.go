@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 	"runtime"
 
 	"github.com/MTVersionManager/mtvm/components/downloader"
@@ -22,6 +23,10 @@ type installModel struct {
 	pluginInfo       pluginDownloadInfo
 	errorHandler     fatalhandler.Model
 	versionInstalled bool
+	step             int
+	metadataUrl      string
+	noDownload       bool
+	done             bool
 }
 
 type pluginDownloadInfo struct {
@@ -32,7 +37,8 @@ type pluginDownloadInfo struct {
 
 func initialInstallModel(url string) installModel {
 	return installModel{
-		downloader: downloader.New(url, downloader.UseTitle("Downloading plugin metadata...")),
+		downloader:  downloader.New(url, downloader.UseTitle("Downloading plugin metadata...")),
+		metadataUrl: url,
 	}
 }
 
@@ -99,12 +105,20 @@ func (m installModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case shared.SuccessMsg:
 		switch msg {
 		case "download":
-			cmds = append(cmds, loadMetadataCmd(m.downloader.GetDownloadedData()))
+			if m.step == 0 {
+				cmds = append(cmds, loadMetadataCmd(m.downloader.GetDownloadedData()))
+			} else {
+				cmds = append(cmds, plugin.UpdateEntriesCmd(plugin.Entry{
+					Name:        m.pluginInfo.Name,
+					Version:     m.pluginInfo.Version.String(),
+					MetadataUrl: m.metadataUrl,
+				}))
+			}
 		case "UpdateEntries":
+			m.done = true
 			return m, tea.Quit
 		}
 	case plugin.Metadata:
-		// fmt.Println(msg)
 		cmds = append(cmds, getPluginInfoCmd(msg))
 	case pluginDownloadInfo:
 		m.pluginInfo = msg
@@ -113,31 +127,34 @@ func (m installModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.errorHandler, cmd = m.errorHandler.Update(err)
 			cmds = append(cmds, cmd)
 		}
+		if m.pluginInfo.URL == "" {
+			m.noDownload = true
+			return m, tea.Quit
+		}
 		if forceFlagUsed {
-			cmds = append(cmds, plugin.UpdateEntriesCmd(plugin.Entry{
-				Name:        m.pluginInfo.Name,
-				Version:     m.pluginInfo.Version.String(),
-				MetadataUrl: m.downloader.GetUrl(),
-			}))
+			m.step++
+			m.downloader = downloader.New(m.pluginInfo.URL, downloader.WriteToDisk(filepath.Join(shared.Configuration.PluginDir, m.pluginInfo.Name+"."+shared.LibraryExtension)), downloader.UseTitle("Downloading plugin..."))
+			cmds = append(cmds, m.downloader.Init())
 		} else {
 			cmds = append(cmds, plugin.InstalledVersionCmd(msg.Name))
 		}
 	case plugin.VersionMsg:
-		if m.pluginInfo.Version.String() == string(msg) {
+		constraint, err := semver.NewConstraint("> " + string(msg))
+		if err != nil {
+			m.errorHandler, cmd = m.errorHandler.Update(err)
+			cmds = append(cmds, cmd)
+		}
+		if !constraint.Check(&m.pluginInfo.Version) {
 			m.versionInstalled = true
 			return m, tea.Quit
 		}
-		cmds = append(cmds, plugin.UpdateEntriesCmd(plugin.Entry{
-			Name:        m.pluginInfo.Name,
-			Version:     m.pluginInfo.Version.String(),
-			MetadataUrl: m.downloader.GetUrl(),
-		}))
+		m.step++
+		m.downloader = downloader.New(m.pluginInfo.URL, downloader.WriteToDisk(filepath.Join(shared.Configuration.PluginDir, m.pluginInfo.Name+".so")), downloader.UseTitle("Downloading plugin..."))
+		cmds = append(cmds, m.downloader.Init())
 	case plugin.NotFoundMsg:
-		cmds = append(cmds, plugin.UpdateEntriesCmd(plugin.Entry{
-			Name:        m.pluginInfo.Name,
-			Version:     m.pluginInfo.Version.String(),
-			MetadataUrl: m.downloader.GetUrl(),
-		}))
+		m.step++
+		m.downloader = downloader.New(m.pluginInfo.URL, downloader.WriteToDisk(filepath.Join(shared.Configuration.PluginDir, m.pluginInfo.Name+".so")), downloader.UseTitle("Downloading plugin..."))
+		cmds = append(cmds, m.downloader.Init())
 	}
 	m.downloader, cmd = m.downloader.Update(msg)
 	cmds = append(cmds, cmd)
@@ -145,19 +162,15 @@ func (m installModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m installModel) View() string {
-	if m.pluginInfo != (pluginDownloadInfo{}) {
-		if m.versionInstalled {
-			return fmt.Sprintf("You already have the latest version of the %v plugin installed.\nUse the --force or -f flag to reinstall it.\n", m.pluginInfo.Name)
-		}
-		// fmt.Println("Finish")
-		if m.pluginInfo.URL == "" {
-			return "Sadly, that plugin does not provide a download for your system."
-		}
-		return fmt.Sprintf(`Plugin version: %v
-Plugin URL: %v
-`, m.pluginInfo.Version, m.pluginInfo.URL)
+	if m.done {
+		return fmt.Sprintf("%v Succesfully installed version %v of the %v plugin\n", shared.CheckMark, m.pluginInfo.Version, m.pluginInfo.Name)
 	}
-	// fmt.Println("Download")
+	if m.versionInstalled {
+		return fmt.Sprintf("You already have the latest version of the %v plugin installed.\nUse the --force or -f flag to reinstall it.\n", m.pluginInfo.Name)
+	}
+	if m.noDownload {
+		return fmt.Sprintf("Sadly, the %v plugin does not provide a download for your system.\n", m.pluginInfo.Name)
+	}
 	return m.downloader.View() + "\n"
 }
 

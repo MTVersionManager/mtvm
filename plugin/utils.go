@@ -31,7 +31,7 @@ func UpdateEntries(entry Entry) error {
 			return err
 		}
 		for i, v := range entries {
-			if entry.Name == v.Name {
+			if entry.Name == v.Name && entry.MetadataUrl == v.MetadataUrl {
 				entryExists = true
 				entries[i] = entry
 				break
@@ -57,6 +57,9 @@ func InstalledVersion(pluginName string) (string, error) {
 	}
 	data, err := os.ReadFile(filepath.Join(configDir, "plugins.json"))
 	if err != nil {
+		if os.IsNotExist(err) {
+			return "", ErrNotFound
+		}
 		return "", err
 	}
 	var entries []Entry
