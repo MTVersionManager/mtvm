@@ -163,7 +163,7 @@ func (m installModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m installModel) View() string {
 	if m.done {
-		return fmt.Sprintf("%v Succesfully installed version %v of the %v plugin\n", shared.CheckMark, m.pluginInfo.Version, m.pluginInfo.Name)
+		return fmt.Sprintf("%v Successfully installed version %v of the %v plugin\n", shared.CheckMark, m.pluginInfo.Version, m.pluginInfo.Name)
 	}
 	if m.versionInstalled {
 		return fmt.Sprintf("You already have the latest version of the %v plugin installed.\nUse the --force or -f flag to reinstall it.\n", m.pluginInfo.Name)
