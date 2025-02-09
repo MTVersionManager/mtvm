@@ -3,13 +3,13 @@ package plugincmds
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/MTVersionManager/mtvm/components/fatalHandler"
 	"log"
 	"os"
 	"path/filepath"
 	"runtime"
 
 	"github.com/MTVersionManager/mtvm/components/downloader"
-	"github.com/MTVersionManager/mtvm/components/fatalhandler"
 	"github.com/MTVersionManager/mtvm/plugin"
 	"github.com/MTVersionManager/mtvm/shared"
 	"github.com/Masterminds/semver/v3"
@@ -21,7 +21,7 @@ import (
 type installModel struct {
 	downloader       downloader.Model
 	pluginInfo       pluginDownloadInfo
-	errorHandler     fatalhandler.Model
+	errorHandler     fatalHandler.Model
 	versionInstalled bool
 	step             int
 	metadataUrl      string
@@ -192,7 +192,7 @@ var InstallCmd = &cobra.Command{
 			fmt.Printf("Alas, there's been an error: %v", err)
 		} else {
 			if model, ok := model.(installModel); ok {
-				fatalhandler.Handle(model.errorHandler)
+				fatalHandler.Handle(model.errorHandler)
 			} else {
 				log.Fatal("Unexpected model type")
 			}

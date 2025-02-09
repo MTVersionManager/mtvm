@@ -2,7 +2,6 @@ package plugin
 
 import (
 	"errors"
-
 	"github.com/MTVersionManager/mtvm/shared"
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -59,11 +58,11 @@ func RemoveCmd(pluginName string) tea.Cmd {
 			if errors.Is(err, ErrNotFound) {
 				return NotFoundMsg{
 					PluginName: pluginName,
-					Source:     "RemovePlugin",
+					Source:     "Remove",
 				}
 			}
 			return err
 		}
-		return shared.SuccessMsg("RemovePlugin")
+		return shared.SuccessMsg("Remove")
 	}
 }

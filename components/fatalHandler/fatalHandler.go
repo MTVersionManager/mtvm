@@ -1,4 +1,4 @@
-package fatalhandler
+package fatalHandler
 
 import (
 	tea "github.com/charmbracelet/bubbletea"

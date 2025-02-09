@@ -114,6 +114,9 @@ func RemoveEntry(pluginName string) error {
 	if err != nil {
 		return err
 	}
+	if len(entries) == 0 {
+		return ErrNotFound
+	}
 	removed := make([]Entry, 0, len(entries)-1)
 	for _, v := range entries {
 		if v.Name != pluginName {

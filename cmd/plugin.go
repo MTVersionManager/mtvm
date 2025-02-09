@@ -33,6 +33,7 @@ var pluginCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(pluginCmd)
 	pluginCmd.AddCommand(plugincmds.InstallCmd)
+	pluginCmd.AddCommand(plugincmds.RemoveCmd)
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command
