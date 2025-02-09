@@ -2,9 +2,10 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/MTVersionManager/mtvm/plugin"
 
 	"github.com/MTVersionManager/mtvm/cmd/plugincmds"
-
+	"github.com/charmbracelet/log"
 	"github.com/spf13/cobra"
 )
 
@@ -14,7 +15,17 @@ var pluginsCmd = &cobra.Command{
 	Short: "Lists the plugins you have installed",
 	Long:  `Lists the plugins you have installed`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("I would be listing the plugins you have installed")
+		entries, err := plugin.GetEntries()
+		if err != nil {
+			log.Fatal("Error when getting list of installed plugins", "err", err)
+		}
+		if len(entries) == 0 || entries == nil {
+			fmt.Println("No plugins installed")
+			return
+		}
+		for _, entry := range entries {
+			fmt.Printf("%v %v\n", entry.Name, entry.Version)
+		}
 	},
 }
 
