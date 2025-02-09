@@ -175,10 +175,11 @@ func (m installModel) View() string {
 }
 
 var InstallCmd = &cobra.Command{
-	Use:   "install [plugin url]",
-	Short: "Install a plugin",
-	Long:  `Install a plugin given a link to the plugin's metadata JSON`,
-	Args:  cobra.ExactArgs(1),
+	Use:     "install [plugin url]",
+	Short:   "Install a plugin",
+	Long:    `Install a plugin given a link to the plugin's metadata JSON`,
+	Args:    cobra.ExactArgs(1),
+	Aliases: []string{"i", "in"},
 	Run: func(cmd *cobra.Command, args []string) {
 		validate := validator.New(validator.WithRequiredStructEnabled())
 		err := validate.Var(args[0], "http_url")
