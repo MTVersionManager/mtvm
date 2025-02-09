@@ -3,11 +3,12 @@ package plugincmds
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/MTVersionManager/mtvm/components/fatalHandler"
 	"log"
 	"os"
 	"path/filepath"
 	"runtime"
+
+	"github.com/MTVersionManager/mtvm/components/fatalHandler"
 
 	"github.com/MTVersionManager/mtvm/components/downloader"
 	"github.com/MTVersionManager/mtvm/plugin"

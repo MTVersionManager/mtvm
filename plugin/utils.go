@@ -3,9 +3,10 @@ package plugin
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/MTVersionManager/mtvm/shared"
 	"os"
 	"path/filepath"
+
+	"github.com/MTVersionManager/mtvm/shared"
 
 	"github.com/MTVersionManager/mtvm/config"
 )
