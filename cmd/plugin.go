@@ -10,8 +10,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// pluginsCmd represents the plugins command
-var pluginsCmd = &cobra.Command{
+// pluginCmd represents the plugins command
+var pluginCmd = &cobra.Command{
 	Use:   "plugin",
 	Short: "Lists the plugins you have installed",
 	Long:  `Lists the plugins you have installed`,
@@ -31,15 +31,15 @@ var pluginsCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(pluginsCmd)
-	pluginsCmd.AddCommand(plugincmds.InstallCmd)
+	rootCmd.AddCommand(pluginCmd)
+	pluginCmd.AddCommand(plugincmds.InstallCmd)
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
-	// pluginsCmd.PersistentFlags().String("foo", "", "A help for foo")
+	// pluginCmd.PersistentFlags().String("foo", "", "A help for foo")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	// pluginsCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	// pluginCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
