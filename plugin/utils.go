@@ -3,6 +3,7 @@ package plugin
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/MTVersionManager/mtvm/shared"
 	"os"
 	"path/filepath"
 
@@ -94,4 +95,49 @@ func GetEntries() ([]Entry, error) {
 		return nil, err
 	}
 	return entries, nil
+}
+
+func RemoveEntry(pluginName string) error {
+	configDir, err := config.GetConfigDir()
+	if err != nil {
+		return err
+	}
+	data, err := os.ReadFile(filepath.Join(configDir, "plugins.json"))
+	if err != nil {
+		if os.IsNotExist(err) {
+			return ErrNotFound
+		}
+		return err
+	}
+	var entries []Entry
+	err = json.Unmarshal(data, &entries)
+	if err != nil {
+		return err
+	}
+	removed := make([]Entry, 0, len(entries)-1)
+	for _, v := range entries {
+		if v.Name != pluginName {
+			removed = append(removed, v)
+		}
+	}
+	if len(removed) == len(entries) {
+		return ErrNotFound
+	}
+	data, err = json.MarshalIndent(removed, "", "	")
+	if err != nil {
+		return err
+	}
+	return os.WriteFile(filepath.Join(configDir, "plugins.json"), data, 0o666)
+}
+
+func RemovePlugin(pluginName string) error {
+	configDir, err := config.GetConfigDir()
+	if err != nil {
+		return err
+	}
+	err = os.Remove(filepath.Join(configDir, "plugins", pluginName+shared.LibraryExtension))
+	if os.IsNotExist(err) {
+		return ErrNotFound
+	}
+	return err
 }

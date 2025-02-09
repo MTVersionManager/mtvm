@@ -24,11 +24,46 @@ func InstalledVersionCmd(pluginName string) tea.Cmd {
 	return func() tea.Msg {
 		version, err := InstalledVersion(pluginName)
 		if err != nil {
-			if !errors.Is(err, ErrNotFound) {
-				return err
+			if errors.Is(err, ErrNotFound) {
+				return NotFoundMsg{
+					PluginName: pluginName,
+					Source:     "InstalledVersion",
+				}
 			}
-			return NotFoundMsg(pluginName)
+			return err
 		}
 		return VersionMsg(version)
+	}
+}
+
+func RemoveEntryCmd(pluginName string) tea.Cmd {
+	return func() tea.Msg {
+		err := RemoveEntry(pluginName)
+		if err != nil {
+			if errors.Is(err, ErrNotFound) {
+				return NotFoundMsg{
+					PluginName: pluginName,
+					Source:     "RemoveEntry",
+				}
+			}
+			return err
+		}
+		return shared.SuccessMsg("RemoveEntry")
+	}
+}
+
+func RemovePluginCmd(pluginName string) tea.Cmd {
+	return func() tea.Msg {
+		err := RemovePlugin(pluginName)
+		if err != nil {
+			if errors.Is(err, ErrNotFound) {
+				return NotFoundMsg{
+					PluginName: pluginName,
+					Source:     "RemovePlugin",
+				}
+			}
+			return err
+		}
+		return shared.SuccessMsg("RemovePlugin")
 	}
 }

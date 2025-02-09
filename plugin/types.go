@@ -1,7 +1,10 @@
 package plugin
 
 // NotFoundMsg contains the name of the plugin that is not found
-type NotFoundMsg string
+type NotFoundMsg struct {
+	PluginName string
+	Source     string
+}
 
 // VersionMsg contains the version that was found
 type VersionMsg string
