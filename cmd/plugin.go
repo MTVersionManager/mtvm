@@ -12,7 +12,7 @@ import (
 
 // pluginsCmd represents the plugins command
 var pluginsCmd = &cobra.Command{
-	Use:   "plugins",
+	Use:   "plugin",
 	Short: "Lists the plugins you have installed",
 	Long:  `Lists the plugins you have installed`,
 	Run: func(cmd *cobra.Command, args []string) {
