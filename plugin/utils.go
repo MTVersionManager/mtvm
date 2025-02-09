@@ -130,7 +130,7 @@ func RemoveEntry(pluginName string) error {
 	return os.WriteFile(filepath.Join(configDir, "plugins.json"), data, 0o666)
 }
 
-func RemovePlugin(pluginName string) error {
+func Remove(pluginName string) error {
 	configDir, err := config.GetConfigDir()
 	if err != nil {
 		return err

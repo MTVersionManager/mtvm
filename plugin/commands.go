@@ -52,9 +52,9 @@ func RemoveEntryCmd(pluginName string) tea.Cmd {
 	}
 }
 
-func RemovePluginCmd(pluginName string) tea.Cmd {
+func RemoveCmd(pluginName string) tea.Cmd {
 	return func() tea.Msg {
-		err := RemovePlugin(pluginName)
+		err := Remove(pluginName)
 		if err != nil {
 			if errors.Is(err, ErrNotFound) {
 				return NotFoundMsg{
