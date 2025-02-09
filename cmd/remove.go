@@ -81,7 +81,7 @@ var removeCmd = &cobra.Command{
 For example:
 "mtvm remove go 1.23.3" removes go version 1.23.3`,
 	Args:    cobra.ExactArgs(2),
-	Aliases: []string{"rm", "r"},
+	Aliases: []string{"r", "rm"},
 	Run: func(cmd *cobra.Command, args []string) {
 		plugin, err := shared.LoadPlugin(args[0])
 		if err != nil {
