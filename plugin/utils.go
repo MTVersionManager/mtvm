@@ -74,3 +74,24 @@ func InstalledVersion(pluginName string) (string, error) {
 	}
 	return "", fmt.Errorf("%w: %s", ErrNotFound, pluginName)
 }
+
+// GetEntries returns a list of installed plugins and an error
+// and returns a nil slice if plugins.json is not present or if there is an error
+func GetEntries() ([]Entry, error) {
+	configDir, err := config.GetConfigDir()
+	if err != nil {
+		return nil, err
+	}
+	data, err := os.ReadFile(filepath.Join(configDir, "plugins.json"))
+	if err != nil {
+		if os.IsNotExist(err) {
+			return nil, nil
+		}
+	}
+	var entries []Entry
+	err = json.Unmarshal(data, &entries)
+	if err != nil {
+		return nil, err
+	}
+	return entries, nil
+}
