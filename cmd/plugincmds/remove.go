@@ -85,10 +85,8 @@ var RemoveCmd = &cobra.Command{
 		p := tea.NewProgram(initialRemoveModel(args[0]))
 		if model, err := p.Run(); err != nil {
 			log.Fatal(err)
-		} else {
-			if model, ok := model.(removeModel); ok {
-				fatalHandler.Handle(model.errorHandler)
-			}
+		} else if model, ok := model.(removeModel); ok {
+			fatalHandler.Handle(model.errorHandler)
 		}
 	},
 }
