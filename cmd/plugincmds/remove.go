@@ -52,10 +52,11 @@ func (m removeModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.fileStatus = StatusDone
 		}
 	case plugin.NotFoundMsg:
-		if msg.Source == "RemoveEntry" {
+		switch msg.Source {
+		case "RemoveEntry":
 			m.entryStatus = StatusNotFound
-		} else if msg.Source == "Remove" {
-			m.fileStatus = StatusNotFound
+		case "Remove":
+			m.fileStatus = StatusDone
 		}
 	}
 	if m.entryStatus != StatusNone && m.fileStatus != StatusNone {
