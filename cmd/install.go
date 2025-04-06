@@ -35,8 +35,7 @@ func (m installModel) Init() tea.Cmd {
 }
 
 func (m installModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	switch msg.(type) {
-	case install.InstalledMsg:
+	if msg.(install.InstalledMsg) {
 		m.installed = true
 		return m, tea.Quit
 	}
