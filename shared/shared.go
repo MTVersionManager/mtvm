@@ -4,9 +4,9 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
-	"strings"
+	// "strings"
 
-	"github.com/MTVersionManager/goplugin"
+	// "github.com/MTVersionManager/goplugin"
 	"github.com/MTVersionManager/mtvmplugin"
 	"github.com/charmbracelet/lipgloss"
 
@@ -31,11 +31,11 @@ func IsVersionInstalled(tool, version string) (bool, error) {
 }
 
 func LoadPlugin(tool string) (mtvmplugin.Plugin, error) {
-	var plugin mtvmplugin.Plugin
-	if strings.ToLower(tool) == "go" {
-		plugin = &goplugin.Plugin{}
-	} else {
-		return nil, errors.New("plugin support is not yet implemented")
-	}
-	return plugin, nil
+	// var plugin mtvmplugin.Plugin
+	// if strings.ToLower(tool) == "go" {
+	//	plugin = &goplugin.Plugin{}
+	// } else {
+	return nil, errors.New("plugin support is not yet implemented")
+	// }
+	// return plugin, nil
 }
