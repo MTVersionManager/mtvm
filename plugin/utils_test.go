@@ -41,7 +41,7 @@ func TestAddFirstEntryNoPluginFile(t *testing.T) {
 	err := UpdateEntries(Entry{
 		Name:        "loremIpsum",
 		Version:     "0.0.0",
-		MetadataUrl: "http://example.com",
+		MetadataUrl: "https://example.com",
 	}, fs)
 	if err != nil {
 		t.Fatalf("want no error, got %v", err)
