@@ -1,7 +1,11 @@
 name: Run tests and upload coverage
 
 on: 
-  push
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
 
 jobs:
   test:
@@ -22,7 +26,8 @@ jobs:
       - name: Run tests
         run: go test ./... -coverprofile=coverage.txt
 
-      - name: Upload results to Codecov
-        uses: codecov/codecov-action@v5
+      - name: Upload results to Codacy
+        uses: codacy/codacy-coverage-reporter-action@v1.3.0
         with:
-          token: ${{ secrets.CODECOV_TOKEN }}
+          project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
+          coverage-reports: coverage.txt
