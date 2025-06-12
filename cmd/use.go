@@ -13,6 +13,7 @@ import (
 	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
 
+	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 )
 
@@ -108,6 +109,7 @@ So if you run go version it will print the version number 1.23.3`,
 		switch {
 		case len(args) == 2:
 			version := args[1]
+			fs := afero.NewOsFs()
 			if strings.ToLower(version) == "latest" {
 				var err error
 				version, err = plugin.GetLatestVersion()
@@ -120,7 +122,7 @@ So if you run go version it will print the version number 1.23.3`,
 				log.Fatal(err)
 			}
 			if installFlagUsed && !versionInstalled {
-				err = createPathDir()
+				err = createPathDir(fs)
 				if err != nil {
 					log.Fatal(err)
 				}
@@ -132,7 +134,7 @@ So if you run go version it will print the version number 1.23.3`,
 				fmt.Println("That version is not installed.")
 				os.Exit(1)
 			} else {
-				err = createPathDir()
+				err = createPathDir(fs)
 				if err != nil {
 					log.Fatal(err)
 				}
@@ -155,8 +157,8 @@ So if you run go version it will print the version number 1.23.3`,
 	},
 }
 
-func createPathDir() error {
-	err := os.MkdirAll(shared.Configuration.PathDir, 0o777)
+func createPathDir(fs afero.Fs) error {
+	err := fs.MkdirAll(shared.Configuration.PathDir, 0o777)
 	if err != nil && !os.IsExist(err) {
 		return err
 	}
