@@ -20,7 +20,32 @@ func TestInstalledVersionNoPluginFile(t *testing.T) {
 	}
 }
 
-// TODO: Finish this test after doing afero
+func TestInstalledVersionEmptyPluginFile(t *testing.T) {
+	fs := afero.NewMemMapFs()
+	configDir, err := config.GetConfigDir()
+	if err != nil {
+		t.Fatalf("Want no error when getting config directory, got %v", err)
+	}
+	err = fs.MkdirAll(configDir, 0o666)
+	if err != nil {
+		t.Fatalf("Want no error when creating config directory, got %v", err)
+	}
+	file, err := fs.Create(filepath.Join(configDir, "plugins.json"))
+	if err != nil {
+		t.Fatalf("Want no error when creating plugins.json, got %v", err)
+	}
+	defer file.Close()
+	file.Write([]byte("[]"))
+	_, err = InstalledVersion("loremIpsum", fs)
+	if err == nil {
+		t.Fatal("Want error, got nil")
+	}
+	t.Log(err)
+	if !errors.Is(err, ErrNotFound) {
+		t.Fatal("Want error to contain ErrNotFound, got error not containing ErrNotFound")
+	}
+}
+
 func TestAddFirstEntryNoPluginFile(t *testing.T) {
 	fs := afero.NewMemMapFs()
 	err := UpdateEntries(Entry{
