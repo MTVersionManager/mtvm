@@ -35,7 +35,10 @@ func TestInstalledVersionEmptyPluginFile(t *testing.T) {
 		t.Fatalf("Want no error when creating plugins.json, got %v", err)
 	}
 	defer file.Close()
-	file.Write([]byte("[]"))
+	_, err = file.Write([]byte("[]"))
+	if err != nil {
+		t.Fatalf("Want no error when writing to plugins.json, got %v", err)
+	}
 	_, err = InstalledVersion("loremIpsum", fs)
 	if err == nil {
 		t.Fatal("Want error, got nil")
