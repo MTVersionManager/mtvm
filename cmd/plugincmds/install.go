@@ -16,6 +16,7 @@ import (
 	"github.com/Masterminds/semver/v3"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/go-playground/validator/v10"
+	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 )
 
@@ -28,6 +29,7 @@ type installModel struct {
 	metadataUrl      string
 	noDownload       bool
 	done             bool
+	fileSystem       afero.Fs
 }
 
 type pluginDownloadInfo struct {
@@ -40,6 +42,7 @@ func initialInstallModel(url string) installModel {
 	return installModel{
 		downloader:  downloader.New(url, downloader.UseTitle("Downloading plugin metadata...")),
 		metadataUrl: url,
+		fileSystem:  afero.NewOsFs(),
 	}
 }
 
@@ -113,7 +116,7 @@ func (m installModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					Name:        m.pluginInfo.Name,
 					Version:     m.pluginInfo.Version.String(),
 					MetadataUrl: m.metadataUrl,
-				}))
+				}, m.fileSystem))
 			}
 		case "UpdateEntries":
 			m.done = true
@@ -134,10 +137,10 @@ func (m installModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		if forceFlagUsed {
 			m.step++
-			m.downloader = downloader.New(m.pluginInfo.URL, downloader.WriteToDisk(filepath.Join(shared.Configuration.PluginDir, m.pluginInfo.Name+"."+shared.LibraryExtension)), downloader.UseTitle("Downloading plugin..."))
+			m.downloader = downloader.New(m.pluginInfo.URL, downloader.WriteToFs(filepath.Join(shared.Configuration.PluginDir, m.pluginInfo.Name+"."+shared.LibraryExtension), m.fileSystem), downloader.UseTitle("Downloading plugin..."))
 			cmds = append(cmds, m.downloader.Init())
 		} else {
-			cmds = append(cmds, plugin.InstalledVersionCmd(msg.Name))
+			cmds = append(cmds, plugin.InstalledVersionCmd(msg.Name, m.fileSystem))
 		}
 	case plugin.VersionMsg:
 		constraint, err := semver.NewConstraint("> " + string(msg))
@@ -150,11 +153,11 @@ func (m installModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Quit
 		}
 		m.step++
-		m.downloader = downloader.New(m.pluginInfo.URL, downloader.WriteToDisk(filepath.Join(shared.Configuration.PluginDir, m.pluginInfo.Name+".so")), downloader.UseTitle("Downloading plugin..."))
+		m.downloader = downloader.New(m.pluginInfo.URL, downloader.WriteToFs(filepath.Join(shared.Configuration.PluginDir, m.pluginInfo.Name+".so"), m.fileSystem), downloader.UseTitle("Downloading plugin..."))
 		cmds = append(cmds, m.downloader.Init())
 	case plugin.NotFoundMsg:
 		m.step++
-		m.downloader = downloader.New(m.pluginInfo.URL, downloader.WriteToDisk(filepath.Join(shared.Configuration.PluginDir, m.pluginInfo.Name+".so")), downloader.UseTitle("Downloading plugin..."))
+		m.downloader = downloader.New(m.pluginInfo.URL, downloader.WriteToFs(filepath.Join(shared.Configuration.PluginDir, m.pluginInfo.Name+".so"), m.fileSystem), downloader.UseTitle("Downloading plugin..."))
 		cmds = append(cmds, m.downloader.Init())
 	}
 	m.downloader, cmd = m.downloader.Update(msg)

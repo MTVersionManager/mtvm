@@ -3,13 +3,15 @@ package plugin
 import (
 	"errors"
 	"testing"
-	//"os"
-	//"path/filepath"
-	//"github.com/MTVersionManager/mtvm/config"
+
+	"github.com/spf13/afero"
+	// "os"
+	// "path/filepath"
+	// "github.com/MTVersionManager/mtvm/config"
 )
 
-func TestNoInstalledVersion(t *testing.T) {
-	_, err := InstalledVersion("loremIpsum")
+func TestInstalledVersionNoPluginFile(t *testing.T) {
+	_, err := InstalledVersion("loremIpsum", afero.NewMemMapFs())
 	if err == nil {
 		t.Fatal("Want error, got nil")
 	}
@@ -19,7 +21,7 @@ func TestNoInstalledVersion(t *testing.T) {
 }
 
 // TODO: Finish this test after doing afero
-//func TestAddFirstEntry(t *testing.T) {
+// func TestAddFirstEntry(t *testing.T) {
 //	err := UpdateEntries(Entry{
 //		Name: "loremIpsum",
 //		Version: "0.0.0",
@@ -37,4 +39,4 @@ func TestNoInstalledVersion(t *testing.T) {
 //		t.Fatalf("Want no error when reading plugins.json, got %v", err)
 //	}
 //	t.Log(string(data))
-//}
+// }
