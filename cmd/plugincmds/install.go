@@ -116,7 +116,7 @@ func (m installModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					Name:        m.pluginInfo.Name,
 					Version:     m.pluginInfo.Version.String(),
 					MetadataUrl: m.metadataUrl,
-				}))
+				}, m.fileSystem))
 			}
 		case "UpdateEntries":
 			m.done = true
@@ -140,7 +140,7 @@ func (m installModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.downloader = downloader.New(m.pluginInfo.URL, downloader.WriteToFs(filepath.Join(shared.Configuration.PluginDir, m.pluginInfo.Name+"."+shared.LibraryExtension), m.fileSystem), downloader.UseTitle("Downloading plugin..."))
 			cmds = append(cmds, m.downloader.Init())
 		} else {
-			cmds = append(cmds, plugin.InstalledVersionCmd(msg.Name))
+			cmds = append(cmds, plugin.InstalledVersionCmd(msg.Name, m.fileSystem))
 		}
 	case plugin.VersionMsg:
 		constraint, err := semver.NewConstraint("> " + string(msg))

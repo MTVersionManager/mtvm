@@ -7,6 +7,7 @@ import (
 
 	"github.com/MTVersionManager/mtvm/cmd/plugincmds"
 	"github.com/charmbracelet/log"
+	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 )
 
@@ -16,7 +17,7 @@ var pluginCmd = &cobra.Command{
 	Short: "Lists the plugins you have installed",
 	Long:  `Lists the plugins you have installed`,
 	Run: func(cmd *cobra.Command, args []string) {
-		entries, err := plugin.GetEntries()
+		entries, err := plugin.GetEntries(afero.NewOsFs())
 		if err != nil {
 			log.Fatal("Error when getting list of installed plugins", "err", err)
 		}

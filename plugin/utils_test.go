@@ -3,13 +3,15 @@ package plugin
 import (
 	"errors"
 	"testing"
+
+	"github.com/spf13/afero"
 	//"os"
 	//"path/filepath"
 	//"github.com/MTVersionManager/mtvm/config"
 )
 
-func TestNoInstalledVersion(t *testing.T) {
-	_, err := InstalledVersion("loremIpsum")
+func TestInstalledVersionNoPluginFile(t *testing.T) {
+	_, err := InstalledVersion("loremIpsum", afero.NewMemMapFs())
 	if err == nil {
 		t.Fatal("Want error, got nil")
 	}
