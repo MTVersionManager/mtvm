@@ -25,7 +25,7 @@ type removeModel struct {
 	fileStatus   int
 	entryStatus  int
 	errorHandler fatalHandler.Model
-	fileSystem afero.Fs
+	fileSystem   afero.Fs
 }
 
 func initialRemoveModel(pluginName string) removeModel {

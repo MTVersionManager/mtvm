@@ -4,10 +4,10 @@ import (
 	"errors"
 	"testing"
 
+	"path/filepath"
+
+	"github.com/MTVersionManager/mtvm/config"
 	"github.com/spf13/afero"
-	// "os"
-	// "path/filepath"
-	// "github.com/MTVersionManager/mtvm/config"
 )
 
 func TestInstalledVersionNoPluginFile(t *testing.T) {
@@ -21,22 +21,32 @@ func TestInstalledVersionNoPluginFile(t *testing.T) {
 }
 
 // TODO: Finish this test after doing afero
-// func TestAddFirstEntry(t *testing.T) {
-//	err := UpdateEntries(Entry{
-//		Name: "loremIpsum",
-//		Version: "0.0.0",
-//		MetadataUrl: "http://example.com",
-//	})
-//	if err != nil {
-//		t.Fatalf("Want no error, got %v", err)
-//	}
-//	configDir, err := config.GetConfigDir()
-//	if err != nil {
-//		t.Fatalf("Want no error when getting config dir, got %v", err)
-//	}
-//	data, err := os.ReadFile(filepath.Join(configDir, "plugins.json"))
-//	if err != nil {
-//		t.Fatalf("Want no error when reading plugins.json, got %v", err)
-//	}
-//	t.Log(string(data))
-// }
+func TestAddFirstEntryNoPluginFile(t *testing.T) {
+	fs := afero.NewMemMapFs()
+	err := UpdateEntries(Entry{
+		Name:        "loremIpsum",
+		Version:     "0.0.0",
+		MetadataUrl: "http://example.com",
+	}, fs)
+	if err != nil {
+		t.Fatalf("Want no error, got %v", err)
+	}
+	configDir, err := config.GetConfigDir()
+	if err != nil {
+		t.Fatalf("Want no error when getting config dir, got %v", err)
+	}
+	data, err := afero.ReadFile(fs, filepath.Join(configDir, "plugins.json"))
+	if err != nil {
+		t.Fatalf("Want no error when reading plugins.json, got %v", err)
+	}
+	expected := `[
+	{
+		"name": "loremIpsum",
+		"version": "0.0.0",
+		"metadataUrl": "http://example.com"
+	}
+]`
+	if string(data) != expected {
+		t.Fatalf("Want\n%v\ngot\n%v", expected, string(data))
+	}
+}
