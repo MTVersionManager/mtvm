@@ -111,6 +111,64 @@ func TestAddEntryWithExistingEntry(t *testing.T) {
 	}
 }
 
+func TestGetEntriesWithNoPluginsJson(t *testing.T) {
+	fs := afero.NewMemMapFs()
+	entries, err := GetEntries(fs)
+	if err != nil {
+		t.Fatalf("want no error, got %v", err)
+	}
+	if entries != nil {
+		t.Fatalf("want entries to be nil, got %v", entries)
+	}
+}
+
+func TestGetEntriesWithNoEntries(t *testing.T) {
+	fs := afero.NewMemMapFs()
+	err := CreateAndWritePluginsJson([]byte(`[]`), fs)
+	if err != nil {
+		t.Fatal(err)
+	}
+	entries, err := GetEntries(fs)
+	if err != nil {
+		t.Fatalf("want no error, got %v", err)
+	}
+	if len(entries) != 0 {
+		t.Fatalf("want entries to be empty, got %v", entries)
+	}
+}
+
+func TestGetEntriesWithEntries(t *testing.T) {
+	fs := afero.NewMemMapFs()
+	err := CreateAndWritePluginsJson([]byte(`[
+	{
+		"name": "loremIpsum",
+		"version": "0.0.0",
+		"metadataUrl": "https://example.com"
+	},
+	{
+		"name": "dolorSitAmet",
+		"version": "0.0.0",
+		"metadataUrl": "https://example.com"
+	}
+]`), fs)
+	if err != nil {
+		t.Fatal(err)
+	}
+	entries, err := GetEntries(fs)
+	if err != nil {
+		t.Fatalf("want no error, got %v", err)
+	}
+	if len(entries) != 2 {
+		t.Fatalf("want 2 entries, got %v entries containing %v", len(entries), entries)
+	}
+	if entries[0].Name != "loremIpsum" {
+		t.Fatalf("wanted first entry name to be 'loremIpsum', got %v", entries[0].Name)
+	}
+	if entries[1].Name != "dolorSitAmet" {
+		t.Fatalf("wanted second entry name to be 'dolorSitAmet', got %v", entries[1].Name)
+	}
+}
+
 func CreateAndWritePluginsJson(content []byte, fs afero.Fs) error {
 	configDir, err := config.GetConfigDir()
 	if err != nil {
