@@ -5,12 +5,13 @@ import (
 
 	"github.com/MTVersionManager/mtvm/shared"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/spf13/afero"
 )
 
 // UpdateEntriesCmd returns an error on failure and a shared.SuccessMsg with contents "UpdateEntries" on success
-func UpdateEntriesCmd(entry Entry) tea.Cmd {
+func UpdateEntriesCmd(entry Entry, fs afero.Fs) tea.Cmd {
 	return func() tea.Msg {
-		err := UpdateEntries(entry)
+		err := UpdateEntries(entry, fs)
 		if err != nil {
 			return err
 		}
@@ -20,9 +21,9 @@ func UpdateEntriesCmd(entry Entry) tea.Cmd {
 
 // InstalledVersionCmd returns a VersionMsg on success,
 // a NotFoundMsg with the plugin name if the plugin isn't found, and an error on failure
-func InstalledVersionCmd(pluginName string) tea.Cmd {
+func InstalledVersionCmd(pluginName string, fs afero.Fs) tea.Cmd {
 	return func() tea.Msg {
-		version, err := InstalledVersion(pluginName)
+		version, err := InstalledVersion(pluginName, fs)
 		if err != nil {
 			if errors.Is(err, ErrNotFound) {
 				return NotFoundMsg{
@@ -36,9 +37,9 @@ func InstalledVersionCmd(pluginName string) tea.Cmd {
 	}
 }
 
-func RemoveEntryCmd(pluginName string) tea.Cmd {
+func RemoveEntryCmd(pluginName string, fs afero.Fs) tea.Cmd {
 	return func() tea.Msg {
-		err := RemoveEntry(pluginName)
+		err := RemoveEntry(pluginName, fs)
 		if err != nil {
 			if errors.Is(err, ErrNotFound) {
 				return NotFoundMsg{
@@ -52,9 +53,9 @@ func RemoveEntryCmd(pluginName string) tea.Cmd {
 	}
 }
 
-func RemoveCmd(pluginName string) tea.Cmd {
+func RemoveCmd(pluginName string, fs afero.Fs) tea.Cmd {
 	return func() tea.Msg {
-		err := Remove(pluginName)
+		err := Remove(pluginName, fs)
 		if err != nil {
 			if errors.Is(err, ErrNotFound) {
 				return NotFoundMsg{

@@ -7,10 +7,10 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"os"
 
 	"github.com/MTVersionManager/mtvm/shared"
 	"github.com/charmbracelet/bubbles/spinner"
+	"github.com/spf13/afero"
 
 	"github.com/MTVersionManager/mtvm/components/downloadProgress"
 	tea "github.com/charmbracelet/bubbletea"
@@ -19,7 +19,7 @@ import (
 type downloadWriter struct {
 	totalSize       int64
 	downloadedSize  int64
-	file            *os.File
+	file            afero.File
 	progressChannel chan float64
 	resp            *http.Response
 	copyDone        chan bool
@@ -72,9 +72,9 @@ type Model struct {
 
 type Option func(Model) Model
 
-func WriteToDisk(filePath string) Option {
+func WriteToFs(filePath string, fs afero.Fs) Option {
 	return func(model Model) Model {
-		file, err := os.Create(filePath)
+		file, err := fs.Create(filePath)
 		if err != nil {
 			log.Fatal(err)
 		}

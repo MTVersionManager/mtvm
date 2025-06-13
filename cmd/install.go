@@ -10,6 +10,7 @@ import (
 	"github.com/MTVersionManager/mtvm/shared"
 	"github.com/MTVersionManager/mtvmplugin"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 )
 
@@ -61,7 +62,7 @@ If you run "mtvm install go latest" it will install the latest version of go`,
 	Args:    cobra.ExactArgs(2),
 	Aliases: []string{"i", "in"},
 	Run: func(cmd *cobra.Command, args []string) {
-		err := createInstallDir()
+		err := createInstallDir(afero.NewOsFs())
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -93,8 +94,8 @@ If you run "mtvm install go latest" it will install the latest version of go`,
 	},
 }
 
-func createInstallDir() error {
-	err := os.MkdirAll(shared.Configuration.InstallDir, 0o777)
+func createInstallDir(fs afero.Fs) error {
+	err := fs.MkdirAll(shared.Configuration.InstallDir, 0o777)
 	if err != nil && !os.IsExist(err) {
 		return err
 	}

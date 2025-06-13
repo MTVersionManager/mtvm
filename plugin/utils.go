@@ -7,21 +7,22 @@ import (
 	"path/filepath"
 
 	"github.com/MTVersionManager/mtvm/shared"
+	"github.com/spf13/afero"
 
 	"github.com/MTVersionManager/mtvm/config"
 )
 
 // UpdateEntries updates the data of an entry if it exists, and adds an entry if it doesn't
-func UpdateEntries(entry Entry) error {
+func UpdateEntries(entry Entry, fs afero.Fs) error {
 	configDir, err := config.GetConfigDir()
 	if err != nil {
 		return err
 	}
-	err = os.MkdirAll(configDir, 0o666)
+	err = fs.MkdirAll(configDir, 0o666)
 	if err != nil {
 		return err
 	}
-	data, err := os.ReadFile(filepath.Join(configDir, "plugins.json"))
+	data, err := afero.ReadFile(fs, filepath.Join(configDir, "plugins.json"))
 	var entryExists bool
 	var entries []Entry
 	if !os.IsNotExist(err) {
@@ -47,17 +48,17 @@ func UpdateEntries(entry Entry) error {
 	if err != nil {
 		return err
 	}
-	return os.WriteFile(filepath.Join(configDir, "plugins.json"), data, 0o666)
+	return afero.WriteFile(fs, filepath.Join(configDir, "plugins.json"), data, 0o666)
 }
 
 // InstalledVersion returns the current version of a plugin that is installed.
 // Returns an ErrNotFound if the version is not found.
-func InstalledVersion(pluginName string) (string, error) {
+func InstalledVersion(pluginName string, fs afero.Fs) (string, error) {
 	configDir, err := config.GetConfigDir()
 	if err != nil {
 		return "", err
 	}
-	data, err := os.ReadFile(filepath.Join(configDir, "plugins.json"))
+	data, err := afero.ReadFile(fs, filepath.Join(configDir, "plugins.json"))
 	if err != nil {
 		if os.IsNotExist(err) {
 			return "", ErrNotFound
@@ -79,12 +80,12 @@ func InstalledVersion(pluginName string) (string, error) {
 
 // GetEntries returns a list of installed plugins and an error
 // and returns a nil slice if plugins.json is not present or if there is an error
-func GetEntries() ([]Entry, error) {
+func GetEntries(fs afero.Fs) ([]Entry, error) {
 	configDir, err := config.GetConfigDir()
 	if err != nil {
 		return nil, err
 	}
-	data, err := os.ReadFile(filepath.Join(configDir, "plugins.json"))
+	data, err := afero.ReadFile(fs, filepath.Join(configDir, "plugins.json"))
 	if err != nil {
 		if os.IsNotExist(err) {
 			return nil, nil
@@ -98,12 +99,12 @@ func GetEntries() ([]Entry, error) {
 	return entries, nil
 }
 
-func RemoveEntry(pluginName string) error {
+func RemoveEntry(pluginName string, fs afero.Fs) error {
 	configDir, err := config.GetConfigDir()
 	if err != nil {
 		return err
 	}
-	data, err := os.ReadFile(filepath.Join(configDir, "plugins.json"))
+	data, err := afero.ReadFile(fs, filepath.Join(configDir, "plugins.json"))
 	if err != nil {
 		if os.IsNotExist(err) {
 			return ErrNotFound
@@ -131,15 +132,11 @@ func RemoveEntry(pluginName string) error {
 	if err != nil {
 		return err
 	}
-	return os.WriteFile(filepath.Join(configDir, "plugins.json"), data, 0o666)
+	return afero.WriteFile(fs, filepath.Join(configDir, "plugins.json"), data, 0o666)
 }
 
-func Remove(pluginName string) error {
-	configDir, err := config.GetConfigDir()
-	if err != nil {
-		return err
-	}
-	err = os.Remove(filepath.Join(configDir, "plugins", pluginName+shared.LibraryExtension))
+func Remove(pluginName string, fs afero.Fs) error {
+	err := fs.Remove(filepath.Join(shared.Configuration.PluginDir, pluginName+shared.LibraryExtension))
 	if os.IsNotExist(err) {
 		return ErrNotFound
 	}
