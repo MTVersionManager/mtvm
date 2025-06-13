@@ -154,6 +154,29 @@ func TestGetEntriesWithEntries(t *testing.T) {
 	}
 }
 
+func TestRemoveEntry(t *testing.T) {
+	fs := afero.NewMemMapFs()
+	err := CreateAndWritePluginsJson([]byte(twoEntryJson), fs)
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = RemoveEntry("dolorSitAmet", fs)
+	if err != nil {
+		t.Fatalf("want no error when removing entry, got %v", err)
+	}
+	configDir, err := config.GetConfigDir()
+	if err != nil {
+		t.Fatalf("want no error when getting config directory, got %v", err)
+	}
+	data, err := afero.ReadFile(fs, filepath.Join(configDir, "plugins.json"))
+	if err != nil {
+		t.Fatalf("want no error when reading plugins.json, got %v", err)
+	}
+	if string(data) != oneEntryJson {
+		t.Fatalf("want plugins.json to contain\n%v\ngot plugins.json containing\n%v", oneEntryJson, string(data))
+	}
+}
+
 func CreateAndWritePluginsJson(content []byte, fs afero.Fs) error {
 	configDir, err := config.GetConfigDir()
 	if err != nil {
