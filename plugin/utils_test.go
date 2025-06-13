@@ -107,6 +107,40 @@ func TestAddEntryWithExistingEntry(t *testing.T) {
 	}
 }
 
+func TestUpdateExistingEntry(t *testing.T) {
+	fs := afero.NewMemMapFs()
+	err := CreateAndWritePluginsJson([]byte(oneEntryJson), fs)
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = UpdateEntries(Entry{
+		Name: "loremIpsum",
+		Version: "1.0.0",
+		MetadataUrl: "https://example.com",
+	}, fs)
+	if err != nil {
+		t.Fatalf("want no error, got %v", err)
+	}
+	configDir, err := config.GetConfigDir()
+	if err != nil {
+		t.Fatalf("want no error when getting config directory, got %v", err)
+	}
+	data, err := afero.ReadFile(fs, filepath.Join(configDir, "plugins.json"))
+	if err != nil {
+		t.Fatalf("want no error when reading plugins.json, got %v", err)
+	}
+	expected := `[
+	{
+		"name": "loremIpsum",
+		"version": "1.0.0",
+		"metadataUrl": "https://example.com"
+	}
+]`
+	if string(data) != expected {
+		t.Fatalf("want plugins.json to contain\n%v\ngot plugins.json containing\n%v", expected, string(data))
+	}
+}
+
 func TestGetEntriesWithNoPluginsJson(t *testing.T) {
 	fs := afero.NewMemMapFs()
 	entries, err := GetEntries(fs)
@@ -162,7 +196,7 @@ func TestRemoveExistingEntry(t *testing.T) {
 	}
 	err = RemoveEntry("dolorSitAmet", fs)
 	if err != nil {
-		t.Fatalf("want no error when removing entry, got %v", err)
+		t.Fatalf("want no error, got %v", err)
 	}
 	configDir, err := config.GetConfigDir()
 	if err != nil {
