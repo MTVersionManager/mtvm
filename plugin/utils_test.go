@@ -154,7 +154,7 @@ func TestGetEntriesWithEntries(t *testing.T) {
 	}
 }
 
-func TestRemoveEntry(t *testing.T) {
+func TestRemoveExistingEntry(t *testing.T) {
 	fs := afero.NewMemMapFs()
 	err := CreateAndWritePluginsJson([]byte(twoEntryJson), fs)
 	if err != nil {
@@ -174,6 +174,32 @@ func TestRemoveEntry(t *testing.T) {
 	}
 	if string(data) != oneEntryJson {
 		t.Fatalf("want plugins.json to contain\n%v\ngot plugins.json containing\n%v", oneEntryJson, string(data))
+	}
+}
+
+func TestRemoveEntryWithoutPluginsJson(t *testing.T) {
+	fs := afero.NewMemMapFs()
+	err := RemoveEntry("loremIpsum", fs)
+	if err == nil {
+		t.Fatal("want error, got nil")
+	}
+	if !errors.Is(err, ErrNotFound) {
+		t.Fatalf("want error containing ErrNotFound, got %v", err)
+	}
+}
+
+func TestRemoveEntryNonExistentEntry(t *testing.T) {
+	fs := afero.NewMemMapFs()
+	err := CreateAndWritePluginsJson([]byte(oneEntryJson), fs)
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = RemoveEntry("dolorSitAmet", fs)
+	if err == nil {
+		t.Fatal("want error, got nil")
+	}
+	if !errors.Is(err, ErrNotFound) {
+		t.Fatalf("want error containing ErrNotFound, got %v", err)
 	}
 }
 
