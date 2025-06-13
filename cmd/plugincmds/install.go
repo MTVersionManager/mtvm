@@ -1,5 +1,6 @@
 package plugincmds
 
+// TODO: Make it create the plugin directory
 import (
 	"encoding/json"
 	"fmt"

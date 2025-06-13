@@ -136,11 +136,7 @@ func RemoveEntry(pluginName string, fs afero.Fs) error {
 }
 
 func Remove(pluginName string, fs afero.Fs) error {
-	configDir, err := config.GetConfigDir()
-	if err != nil {
-		return err
-	}
-	err = fs.Remove(filepath.Join(configDir, "plugins", pluginName+shared.LibraryExtension))
+	err := fs.Remove(filepath.Join(shared.Configuration.PluginDir, pluginName+shared.LibraryExtension))
 	if os.IsNotExist(err) {
 		return ErrNotFound
 	}

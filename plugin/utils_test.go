@@ -1,12 +1,15 @@
 package plugin
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
+	"os"
 	"path/filepath"
 	"testing"
 
 	"github.com/MTVersionManager/mtvm/config"
+	"github.com/MTVersionManager/mtvm/shared"
 	"github.com/spf13/afero"
 )
 
@@ -114,8 +117,8 @@ func TestUpdateExistingEntry(t *testing.T) {
 		t.Fatal(err)
 	}
 	err = UpdateEntries(Entry{
-		Name: "loremIpsum",
-		Version: "1.0.0",
+		Name:        "loremIpsum",
+		Version:     "1.0.0",
 		MetadataUrl: "https://example.com",
 	}, fs)
 	if err != nil {
@@ -229,6 +232,76 @@ func TestRemoveEntryNonExistentEntry(t *testing.T) {
 		t.Fatal(err)
 	}
 	err = RemoveEntry("dolorSitAmet", fs)
+	if err == nil {
+		t.Fatal("want error, got nil")
+	}
+	if !errors.Is(err, ErrNotFound) {
+		t.Fatalf("want error containing ErrNotFound, got %v", err)
+	}
+}
+
+func TestRemoveEntryInvalidJson(t *testing.T) {
+	fs := afero.NewMemMapFs()
+	err := CreateAndWritePluginsJson([]byte(""), fs)
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = RemoveEntry("loremIpsum", fs)
+	if err == nil {
+		t.Fatal("want error, got nil")
+	}
+	if _, ok := err.(*json.SyntaxError); !ok {
+		t.Fatalf("want JSON syntax error, got %v", err)
+	}
+}
+
+func TestRemoveEntryNoEntries(t *testing.T) {
+	fs := afero.NewMemMapFs()
+	err := CreateAndWritePluginsJson([]byte("[]"), fs)
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = RemoveEntry("loremIpsum", fs)
+	if err == nil {
+		t.Fatal("want error, got nil")
+	}
+	if !errors.Is(err, ErrNotFound) {
+		t.Fatalf("want error containing ErrNotFound, got %v", err)
+	}
+}
+
+func TestRemoveExisting(t *testing.T) {
+	fs := afero.NewMemMapFs()
+	var err error
+	shared.Configuration, err = config.GetConfig()
+	if err != nil {
+		t.Fatalf("want no error when getting configuration, got %v", err)
+	}
+	err = fs.MkdirAll(shared.Configuration.PluginDir, 0o666)
+	if err != nil {
+		t.Fatalf("want no error when creating plugin directory, got %v", err)
+	}
+	pluginPath := filepath.Join(shared.Configuration.PluginDir, "loremIpsum"+shared.LibraryExtension)
+	_, err = fs.Create(pluginPath)
+	if err != nil {
+		t.Fatalf("want no error when creating plugin file, got %v", err)
+	}
+	err = Remove("loremIpsum", fs)
+	if err != nil {
+		t.Fatalf("want no error, got %v", err)
+	}
+	_, err = fs.Stat(pluginPath)
+	if err == nil {
+		t.Fatal("want error, got nil (stat)")
+	}
+	if !os.IsNotExist(err) {
+		t.Fatalf("want file does not exist error, got %v (stat)", err)
+	}
+}
+
+func TestRemoveNonExistent(t *testing.T) {
+	fs := afero.NewMemMapFs()
+	err := Remove("loremIpsum", fs)
 	if err == nil {
 		t.Fatal("want error, got nil")
 	}
