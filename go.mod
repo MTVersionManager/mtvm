@@ -1,6 +1,6 @@
 module github.com/MTVersionManager/mtvm
 
-go 1.23.3
+go 1.24.1
 
 require (
 	github.com/MTVersionManager/mtvmplugin v0.0.0-20241129190150-d9f58a7a95b9
