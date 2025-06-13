@@ -10,6 +10,27 @@ import (
 	"github.com/spf13/afero"
 )
 
+var oneEntryJson string = `[
+	{
+		"name": "loremIpsum",
+		"version": "0.0.0",
+		"metadataUrl": "https://example.com"
+	}
+]`
+
+var twoEntryJson string = `[
+	{
+		"name": "loremIpsum",
+		"version": "0.0.0",
+		"metadataUrl": "https://example.com"
+	},
+	{
+		"name": "dolorSitAmet",
+		"version": "0.0.0",
+		"metadataUrl": "https://example.com"
+	}
+]`
+
 func TestInstalledVersionNoPluginFile(t *testing.T) {
 	_, err := InstalledVersion("loremIpsum", afero.NewMemMapFs())
 	if err == nil {
@@ -54,27 +75,14 @@ func TestAddFirstEntryNoPluginFile(t *testing.T) {
 	if err != nil {
 		t.Fatalf("want no error when reading plugins.json, got %v", err)
 	}
-	expected := `[
-	{
-		"name": "loremIpsum",
-		"version": "0.0.0",
-		"metadataUrl": "https://example.com"
-	}
-]`
-	if string(data) != expected {
-		t.Fatalf("want plugins.json to contain\n%v\ngot plugins.json containing\n%v", expected, string(data))
+	if string(data) != oneEntryJson {
+		t.Fatalf("want plugins.json to contain\n%v\ngot plugins.json containing\n%v", oneEntryJson, string(data))
 	}
 }
 
 func TestAddEntryWithExistingEntry(t *testing.T) {
 	fs := afero.NewMemMapFs()
-	err := CreateAndWritePluginsJson([]byte(`[
-	{
-		"name": "loremIpsum",
-		"version": "0.0.0",
-		"metadataUrl": "https://example.com"
-	}
-]`), fs)
+	err := CreateAndWritePluginsJson([]byte(oneEntryJson), fs)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -94,20 +102,8 @@ func TestAddEntryWithExistingEntry(t *testing.T) {
 	if err != nil {
 		t.Fatalf("want no error when reading plugins.json, got %v", err)
 	}
-	expected := `[
-	{
-		"name": "loremIpsum",
-		"version": "0.0.0",
-		"metadataUrl": "https://example.com"
-	},
-	{
-		"name": "dolorSitAmet",
-		"version": "0.0.0",
-		"metadataUrl": "https://example.com"
-	}
-]`
-	if string(data) != expected {
-		t.Fatalf("want plugins.json to contain\n%v\ngot plugins.json containing\n%v", expected, string(data))
+	if string(data) != twoEntryJson {
+		t.Fatalf("want plugins.json to contain\n%v\ngot plugins.json containing\n%v", twoEntryJson, string(data))
 	}
 }
 
@@ -139,18 +135,7 @@ func TestGetEntriesWithNoEntries(t *testing.T) {
 
 func TestGetEntriesWithEntries(t *testing.T) {
 	fs := afero.NewMemMapFs()
-	err := CreateAndWritePluginsJson([]byte(`[
-	{
-		"name": "loremIpsum",
-		"version": "0.0.0",
-		"metadataUrl": "https://example.com"
-	},
-	{
-		"name": "dolorSitAmet",
-		"version": "0.0.0",
-		"metadataUrl": "https://example.com"
-	}
-]`), fs)
+	err := CreateAndWritePluginsJson([]byte(twoEntryJson), fs)
 	if err != nil {
 		t.Fatal(err)
 	}
