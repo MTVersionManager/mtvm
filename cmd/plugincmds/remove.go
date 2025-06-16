@@ -9,6 +9,7 @@ import (
 	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/log"
+	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 )
 
@@ -24,6 +25,7 @@ type removeModel struct {
 	fileStatus   int
 	entryStatus  int
 	errorHandler fatalHandler.Model
+	fileSystem   afero.Fs
 }
 
 func initialRemoveModel(pluginName string) removeModel {
@@ -32,11 +34,12 @@ func initialRemoveModel(pluginName string) removeModel {
 	return removeModel{
 		pluginName: pluginName,
 		spinner:    spin,
+		fileSystem: afero.NewOsFs(),
 	}
 }
 
 func (m removeModel) Init() tea.Cmd {
-	return tea.Batch(m.spinner.Tick, plugin.RemoveEntryCmd(m.pluginName), plugin.RemoveCmd(m.pluginName))
+	return tea.Batch(m.spinner.Tick, plugin.RemoveEntryCmd(m.pluginName, m.fileSystem), plugin.RemoveCmd(m.pluginName, m.fileSystem))
 }
 
 func (m removeModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {

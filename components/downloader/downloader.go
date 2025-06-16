@@ -7,10 +7,10 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"os"
 
 	"github.com/MTVersionManager/mtvm/shared"
 	"github.com/charmbracelet/bubbles/spinner"
+	"github.com/spf13/afero"
 
 	"github.com/MTVersionManager/mtvm/components/downloadProgress"
 	tea "github.com/charmbracelet/bubbletea"
@@ -19,19 +19,19 @@ import (
 type downloadWriter struct {
 	totalSize       int64
 	downloadedSize  int64
-	file            *os.File
+	file            afero.File
 	progressChannel chan float64
 	resp            *http.Response
 	copyDone        chan bool
 	downloadedData  []byte
 }
 
-type downloadStartedMsg struct {
+type DownloadStartedMsg struct {
 	contentLengthKnown bool
-	cancel             context.CancelFunc
+	Cancel             context.CancelFunc
 }
 
-type downloadCancelledMsg bool
+type DownloadCanceledMsg struct{}
 
 func (dw *downloadWriter) Start() {
 	var err error
@@ -72,9 +72,9 @@ type Model struct {
 
 type Option func(Model) Model
 
-func WriteToDisk(filePath string) Option {
+func WriteToFs(filePath string, fs afero.Fs) Option {
 	return func(model Model) Model {
-		file, err := os.Create(filePath)
+		file, err := fs.Create(filePath)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -146,9 +146,9 @@ func (m Model) startDownload() tea.Msg {
 		m.writer.downloadedData = make([]byte, 0, m.writer.totalSize)
 	}
 	go m.writer.Start()
-	return downloadStartedMsg{
+	return DownloadStartedMsg{
 		contentLengthKnown: contentLengthKnown,
-		cancel:             cancel,
+		Cancel:             cancel,
 	}
 }
 
@@ -167,9 +167,9 @@ func (m Model) GetDownloadedData() []byte {
 func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 	var cmds []tea.Cmd
 	switch msg := msg.(type) {
-	case downloadStartedMsg:
+	case DownloadStartedMsg:
 		m.contentLengthKnown = msg.contentLengthKnown
-		m.cancel = msg.cancel
+		m.cancel = msg.Cancel
 	case shared.SuccessMsg:
 		if msg == "download" {
 			m.cancel()
@@ -184,7 +184,7 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 				}
 			}
 		}
-	case downloadCancelledMsg:
+	case DownloadCanceledMsg:
 		m.Canceled = true
 	}
 	var cmd tea.Cmd
@@ -207,9 +207,12 @@ func (m Model) View() string {
 }
 
 func (m Model) StopDownload() tea.Cmd {
+	if m.cancel == nil {
+		return nil
+	}
 	return func() tea.Msg {
 		m.cancel()
-		return downloadCancelledMsg(true)
+		return DownloadCanceledMsg{}
 	}
 }
 
