@@ -6,6 +6,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/MTVersionManager/mtvm/components/fatalHandler"
 	"github.com/MTVersionManager/mtvm/components/install"
 	"github.com/MTVersionManager/mtvm/shared"
 	"github.com/MTVersionManager/mtvmplugin"
@@ -83,8 +84,12 @@ If you run "mtvm install go latest" it will install the latest version of go`,
 		}
 		if !installed {
 			p := tea.NewProgram(installInitialModel(plugin, args[0], version))
-			if _, err := p.Run(); err != nil {
+			if model, err := p.Run(); err != nil {
 				log.Fatal(err)
+			} else if model, ok := model.(installModel); ok {
+				fatalHandler.Handle(model.installer.ErrorHandler)
+			} else {
+				log.Fatal("unexpected model type")
 			}
 		} else {
 			fmt.Println("That version is already installed")
