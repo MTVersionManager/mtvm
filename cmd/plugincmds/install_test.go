@@ -3,6 +3,7 @@ package plugincmds
 import (
 	"context"
 	"errors"
+	"fmt"
 	"runtime"
 	"testing"
 
@@ -62,38 +63,37 @@ func TestGetPluginInfoInvalidVersion(t *testing.T) {
 }
 
 func TestInstallUpdateCancelQ(t *testing.T) {
-	model := initialInstallModel("https://example.com")
-	_, cancel := context.WithCancel(context.Background())
-	modelUpdated, _ := model.Update(downloader.DownloadStartedMsg{
-		Cancel: cancel,
-	})
-	_, cmd := modelUpdated.Update(tea.KeyMsg{
+	err := CancelTest(tea.KeyMsg{
 		Type:  tea.KeyRunes,
 		Runes: []rune{'q'},
 	})
-	if cmd == nil {
-		t.Fatal("want not nil command, got nil")
-	}
-	msg := cmd()
-	if _, ok := msg.(downloader.DownloadCancelledMsg); !ok {
-		t.Fatalf("expected returned command to return downloader.DownloadCancelledMsg when run, returned %v with type %T", msg, msg)
+	if err != nil {
+		t.Fatal(err)
 	}
 }
 
 func TestUpdateCancelCtrlC(t *testing.T) {
+	err := CancelTest(tea.KeyMsg{
+		Type: tea.KeyCtrlC,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+func CancelTest(keyPress tea.KeyMsg) error {
 	model := initialInstallModel("https://example.com")
 	_, cancel := context.WithCancel(context.Background())
 	modelUpdated, _ := model.Update(downloader.DownloadStartedMsg{
 		Cancel: cancel,
 	})
-	_, cmd := modelUpdated.Update(tea.KeyMsg{
-		Type: tea.KeyCtrlC,
-	})
+	_, cmd := modelUpdated.Update(keyPress)
 	if cmd == nil {
-		t.Fatal("want not nil command, got nil")
+		return errors.New("want not nil command, got nil")
 	}
 	msg := cmd()
 	if _, ok := msg.(downloader.DownloadCancelledMsg); !ok {
-		t.Fatalf("expected returned command to return downloader.DownloadCancelledMsg when run, returned %v with type %T", msg, msg)
+		return fmt.Errorf("expected returned command to return downloader.DownloadCancelledMsg when run, returned %v with type %T", msg, msg)
 	}
+	return nil
 }
