@@ -191,12 +191,10 @@ var InstallCmd = &cobra.Command{
 		p := tea.NewProgram(initialInstallModel(args[0]))
 		if model, err := p.Run(); err != nil {
 			fmt.Printf("Alas, there's been an error: %v", err)
+		} else if model, ok := model.(installModel); ok {
+			fatalHandler.Handle(model.errorHandler)
 		} else {
-			if model, ok := model.(installModel); ok {
-				fatalHandler.Handle(model.errorHandler)
-			} else {
-				log.Fatal("Unexpected model type")
-			}
+			log.Fatal("unexpected model type")
 		}
 	},
 }
