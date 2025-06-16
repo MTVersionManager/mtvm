@@ -1,10 +1,10 @@
 package install
 
 import (
-	"log"
 	"path/filepath"
 
 	"github.com/MTVersionManager/mtvm/components/downloadProgress"
+	"github.com/MTVersionManager/mtvm/components/fatalHandler"
 	"github.com/MTVersionManager/mtvm/shared"
 	"github.com/MTVersionManager/mtvmplugin"
 	"github.com/charmbracelet/bubbles/spinner"
@@ -19,6 +19,7 @@ type Model struct {
 	spinner         spinner.Model
 	pluginName      string
 	downloader      downloadProgress.Model
+	ErrorHandler    fatalHandler.Model
 }
 
 type InstalledMsg bool
@@ -66,14 +67,15 @@ func Install(plugin mtvmplugin.Plugin, installDir string, pluginName, version st
 
 func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 	var cmds []tea.Cmd
+	var cmd tea.Cmd
 	switch msg := msg.(type) {
 	case error:
-		log.Fatal(msg)
+		m.ErrorHandler, cmd = m.ErrorHandler.Update(msg)
+		cmds = append(cmds, cmd)
 	case downloadProgress.DownloadedMsg:
 		m.installing = false
 		cmds = append(cmds, Install(m.plugin, shared.Configuration.InstallDir, m.pluginName, m.version))
 	}
-	var cmd tea.Cmd
 	m.spinner, cmd = m.spinner.Update(msg)
 	cmds = append(cmds, cmd)
 	m.downloader, cmd = m.downloader.Update(msg)
