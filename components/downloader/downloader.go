@@ -31,7 +31,7 @@ type DownloadStartedMsg struct {
 	Cancel             context.CancelFunc
 }
 
-type DownloadCancelledMsg bool
+type DownloadCanceledMsg struct{}
 
 func (dw *downloadWriter) Start() {
 	var err error
@@ -184,7 +184,7 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 				}
 			}
 		}
-	case DownloadCancelledMsg:
+	case DownloadCanceledMsg:
 		m.Canceled = true
 	}
 	var cmd tea.Cmd
@@ -212,7 +212,7 @@ func (m Model) StopDownload() tea.Cmd {
 	}
 	return func() tea.Msg {
 		m.cancel()
-		return DownloadCancelledMsg(true)
+		return DownloadCanceledMsg{}
 	}
 }
 

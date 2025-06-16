@@ -9,6 +9,7 @@ import (
 
 	"github.com/MTVersionManager/mtvm/components/downloader"
 	"github.com/MTVersionManager/mtvm/plugin"
+	"github.com/MTVersionManager/mtvm/shared"
 	"github.com/Masterminds/semver/v3"
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -72,7 +73,7 @@ func TestInstallUpdateCancelQ(t *testing.T) {
 	}
 }
 
-func TestUpdateCancelCtrlC(t *testing.T) {
+func TestPluginInstallUpdateCancelCtrlC(t *testing.T) {
 	err := CancelTest(tea.KeyMsg{
 		Type: tea.KeyCtrlC,
 	})
@@ -92,8 +93,20 @@ func CancelTest(keyPress tea.KeyMsg) error {
 		return errors.New("want not nil command, got nil")
 	}
 	msg := cmd()
-	if _, ok := msg.(downloader.DownloadCancelledMsg); !ok {
-		return fmt.Errorf("expected returned command to return downloader.DownloadCancelledMsg when run, returned %v with type %T", msg, msg)
+	if _, ok := msg.(downloader.DownloadCanceledMsg); !ok {
+		return fmt.Errorf("expected returned command to return downloader.DownloadCanceledMsg, returned %v with type %T", msg, msg)
 	}
 	return nil
+}
+
+func TestPluginInstallUpdateEntriesSuccess(t *testing.T) {
+	model := initialInstallModel("https://example.com")
+	_, cmd := model.Update(shared.SuccessMsg("UpdateEntries"))
+	if cmd == nil {
+		t.Fatal("want not nil command, got nil")
+	}
+	msg := cmd()
+	if _, ok := msg.(tea.QuitMsg); !ok {
+		t.Fatalf("want command to return tea.QuitMsg, returned %T with content %v", msg, msg)
+	}
 }
