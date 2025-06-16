@@ -277,7 +277,7 @@ func TestRemoveExisting(t *testing.T) {
 	if err != nil {
 		t.Fatalf("want no error when getting configuration, got %v", err)
 	}
-	err = fs.MkdirAll(shared.Configuration.PluginDir, 0o666)
+	err = fs.MkdirAll(shared.Configuration.PluginDir, 0o777)
 	if err != nil {
 		t.Fatalf("want no error when creating plugin directory, got %v", err)
 	}

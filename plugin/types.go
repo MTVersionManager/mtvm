@@ -10,14 +10,16 @@ type NotFoundMsg struct {
 type VersionMsg string
 
 type Metadata struct {
-	Name      string `json:"name" validate:"required"`
-	Version   string `json:"version" validate:"required,semver"`
-	Downloads []struct {
-		OS       string `json:"os" validate:"required"`
-		Arch     string `json:"arch" validate:"required"`
-		URL      string `json:"url" validate:"required,http_url"`
-		Checksum string `json:"checksum"`
-	} `json:"downloads" validate:"required,dive"`
+	Name      string     `json:"name" validate:"required"`
+	Version   string     `json:"version" validate:"required,semver"`
+	Downloads []Download `json:"downloads" validate:"required,dive"`
+}
+
+type Download struct {
+	OS       string `json:"os" validate:"required"`
+	Arch     string `json:"arch" validate:"required"`
+	Url      string `json:"url" validate:"required,http_url"`
+	Checksum string `json:"checksum"`
 }
 
 type Entry struct {

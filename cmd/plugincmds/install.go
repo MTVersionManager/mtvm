@@ -34,9 +34,9 @@ type installModel struct {
 }
 
 type pluginDownloadInfo struct {
-	URL     string
+	Url     string
 	Name    string
-	Version semver.Version
+	Version *semver.Version
 }
 
 func initialInstallModel(url string) installModel {
@@ -80,13 +80,13 @@ func getPluginInfoCmd(metadata plugin.Metadata) tea.Cmd {
 		var url string
 		for _, v := range metadata.Downloads {
 			if v.OS == runtime.GOOS && v.Arch == runtime.GOARCH {
-				url = v.URL
+				url = v.Url
 			}
 		}
 		return pluginDownloadInfo{
-			URL:     url,
+			Url:     url,
 			Name:    metadata.Name,
-			Version: *version,
+			Version: version,
 		}
 	}
 }
@@ -132,13 +132,13 @@ func (m installModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.errorHandler, cmd = m.errorHandler.Update(err)
 			cmds = append(cmds, cmd)
 		}
-		if m.pluginInfo.URL == "" {
+		if m.pluginInfo.Url == "" {
 			m.noDownload = true
 			return m, tea.Quit
 		}
 		if forceFlagUsed {
 			m.step++
-			m.downloader = downloader.New(m.pluginInfo.URL, downloader.WriteToFs(filepath.Join(shared.Configuration.PluginDir, m.pluginInfo.Name+"."+shared.LibraryExtension), m.fileSystem), downloader.UseTitle("Downloading plugin..."))
+			m.downloader = downloader.New(m.pluginInfo.Url, downloader.WriteToFs(filepath.Join(shared.Configuration.PluginDir, m.pluginInfo.Name+"."+shared.LibraryExtension), m.fileSystem), downloader.UseTitle("Downloading plugin..."))
 			cmds = append(cmds, m.downloader.Init())
 		} else {
 			cmds = append(cmds, plugin.InstalledVersionCmd(msg.Name, m.fileSystem))
@@ -149,16 +149,16 @@ func (m installModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.errorHandler, cmd = m.errorHandler.Update(err)
 			cmds = append(cmds, cmd)
 		}
-		if !constraint.Check(&m.pluginInfo.Version) {
+		if !constraint.Check(m.pluginInfo.Version) {
 			m.versionInstalled = true
 			return m, tea.Quit
 		}
 		m.step++
-		m.downloader = downloader.New(m.pluginInfo.URL, downloader.WriteToFs(filepath.Join(shared.Configuration.PluginDir, m.pluginInfo.Name+".so"), m.fileSystem), downloader.UseTitle("Downloading plugin..."))
+		m.downloader = downloader.New(m.pluginInfo.Url, downloader.WriteToFs(filepath.Join(shared.Configuration.PluginDir, m.pluginInfo.Name+".so"), m.fileSystem), downloader.UseTitle("Downloading plugin..."))
 		cmds = append(cmds, m.downloader.Init())
 	case plugin.NotFoundMsg:
 		m.step++
-		m.downloader = downloader.New(m.pluginInfo.URL, downloader.WriteToFs(filepath.Join(shared.Configuration.PluginDir, m.pluginInfo.Name+".so"), m.fileSystem), downloader.UseTitle("Downloading plugin..."))
+		m.downloader = downloader.New(m.pluginInfo.Url, downloader.WriteToFs(filepath.Join(shared.Configuration.PluginDir, m.pluginInfo.Name+".so"), m.fileSystem), downloader.UseTitle("Downloading plugin..."))
 		cmds = append(cmds, m.downloader.Init())
 	}
 	m.downloader, cmd = m.downloader.Update(msg)
