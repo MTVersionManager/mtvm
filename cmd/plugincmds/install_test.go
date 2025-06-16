@@ -1,11 +1,15 @@
 package plugincmds
 
 import (
+	"context"
+	"errors"
 	"runtime"
 	"testing"
 
+	"github.com/MTVersionManager/mtvm/components/downloader"
 	"github.com/MTVersionManager/mtvm/plugin"
 	"github.com/Masterminds/semver/v3"
+	tea "github.com/charmbracelet/bubbletea"
 )
 
 func TestGetPluginInfo(t *testing.T) {
@@ -35,5 +39,61 @@ func TestGetPluginInfo(t *testing.T) {
 		t.Fatalf("want no error, got %v", err)
 	} else {
 		t.Fatalf("want pluginDownloadInfo returned, got %T with content %v", msg, msg)
+	}
+}
+
+func TestGetPluginInfoInvalidVersion(t *testing.T) {
+	msg := getPluginInfoCmd(plugin.Metadata{
+		Name:    "loremIpsum",
+		Version: "loremIpsum",
+		Downloads: []plugin.Download{
+			{
+				OS:   runtime.GOOS,
+				Arch: runtime.GOARCH,
+				Url:  "https://example.com",
+			},
+		},
+	})()
+	if err, ok := msg.(error); !ok {
+		t.Fatalf("want error, got %T with contents %v", msg, msg)
+	} else if !errors.Is(err, semver.ErrInvalidSemVer) {
+		t.Fatalf("want error containing ErrInvalidSemVer, got %v", err)
+	}
+}
+
+func TestInstallUpdateCancelQ(t *testing.T) {
+	model := initialInstallModel("https://example.com")
+	_, cancel := context.WithCancel(context.Background())
+	modelUpdated, _ := model.Update(downloader.DownloadStartedMsg{
+		Cancel: cancel,
+	})
+	_, cmd := modelUpdated.Update(tea.KeyMsg{
+		Type:  tea.KeyRunes,
+		Runes: []rune{'q'},
+	})
+	if cmd == nil {
+		t.Fatal("want not nil command, got nil")
+	}
+	msg := cmd()
+	if _, ok := msg.(downloader.DownloadCancelledMsg); !ok {
+		t.Fatalf("expected returned command to return downloader.DownloadCancelledMsg when run, returned %v with type %T", msg, msg)
+	}
+}
+
+func TestUpdateCancelCtrlC(t *testing.T) {
+	model := initialInstallModel("https://example.com")
+	_, cancel := context.WithCancel(context.Background())
+	modelUpdated, _ := model.Update(downloader.DownloadStartedMsg{
+		Cancel: cancel,
+	})
+	_, cmd := modelUpdated.Update(tea.KeyMsg{
+		Type: tea.KeyCtrlC,
+	})
+	if cmd == nil {
+		t.Fatal("want not nil command, got nil")
+	}
+	msg := cmd()
+	if _, ok := msg.(downloader.DownloadCancelledMsg); !ok {
+		t.Fatalf("expected returned command to return downloader.DownloadCancelledMsg when run, returned %v with type %T", msg, msg)
 	}
 }

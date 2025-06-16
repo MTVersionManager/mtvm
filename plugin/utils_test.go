@@ -54,7 +54,6 @@ func TestInstalledVersionEmptyPluginFile(t *testing.T) {
 	if err == nil {
 		t.Fatal("want error, got nil")
 	}
-	t.Log(err)
 	if !errors.Is(err, ErrNotFound) {
 		t.Fatal("want error to contain ErrNotFound, got error not containing ErrNotFound")
 	}

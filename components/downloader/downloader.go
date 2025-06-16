@@ -26,12 +26,12 @@ type downloadWriter struct {
 	downloadedData  []byte
 }
 
-type downloadStartedMsg struct {
+type DownloadStartedMsg struct {
 	contentLengthKnown bool
-	cancel             context.CancelFunc
+	Cancel             context.CancelFunc
 }
 
-type downloadCancelledMsg bool
+type DownloadCancelledMsg bool
 
 func (dw *downloadWriter) Start() {
 	var err error
@@ -146,9 +146,9 @@ func (m Model) startDownload() tea.Msg {
 		m.writer.downloadedData = make([]byte, 0, m.writer.totalSize)
 	}
 	go m.writer.Start()
-	return downloadStartedMsg{
+	return DownloadStartedMsg{
 		contentLengthKnown: contentLengthKnown,
-		cancel:             cancel,
+		Cancel:             cancel,
 	}
 }
 
@@ -167,9 +167,9 @@ func (m Model) GetDownloadedData() []byte {
 func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 	var cmds []tea.Cmd
 	switch msg := msg.(type) {
-	case downloadStartedMsg:
+	case DownloadStartedMsg:
 		m.contentLengthKnown = msg.contentLengthKnown
-		m.cancel = msg.cancel
+		m.cancel = msg.Cancel
 	case shared.SuccessMsg:
 		if msg == "download" {
 			m.cancel()
@@ -184,7 +184,7 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 				}
 			}
 		}
-	case downloadCancelledMsg:
+	case DownloadCancelledMsg:
 		m.Canceled = true
 	}
 	var cmd tea.Cmd
@@ -207,9 +207,12 @@ func (m Model) View() string {
 }
 
 func (m Model) StopDownload() tea.Cmd {
+	if m.cancel == nil {
+		return nil
+	}
 	return func() tea.Msg {
 		m.cancel()
-		return downloadCancelledMsg(true)
+		return DownloadCancelledMsg(true)
 	}
 }
 
