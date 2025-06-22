@@ -109,18 +109,18 @@ func TestUpdateEntryWithPluginsJson(t *testing.T) {
 			},
 		},
 	}
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
 			fs := afero.NewMemMapFs()
-			createAndWritePluginsJson(t, test.pluginsJsonContent, fs)
-			err := UpdateEntries(test.entry, fs)
-			if test.wantsError && err == nil {
+			createAndWritePluginsJson(t, tt.pluginsJsonContent, fs)
+			err := UpdateEntries(tt.entry, fs)
+			if tt.wantsError && err == nil {
 				t.Fatal("want error, got nil")
 			}
-			if !test.wantsError && err != nil {
+			if !tt.wantsError && err != nil {
 				t.Fatalf("want no error, got %v", err)
 			}
-			test.testFunc(t, fs, err)
+			tt.testFunc(t, fs, err)
 		})
 	}
 }
@@ -173,12 +173,12 @@ func TestGetEntriesWithPluginsJson(t *testing.T) {
 			},
 		},
 	}
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
 			fs := afero.NewMemMapFs()
-			createAndWritePluginsJson(t, test.pluginsJsonContent, fs)
+			createAndWritePluginsJson(t, tt.pluginsJsonContent, fs)
 			entries, err := GetEntries(fs)
-			test.testFunc(t, entries, err)
+			tt.testFunc(t, entries, err)
 		})
 	}
 }
@@ -239,12 +239,12 @@ func TestRemoveEntryWithPluginsJson(t *testing.T) {
 			},
 		},
 	}
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
 			fs := afero.NewMemMapFs()
-			createAndWritePluginsJson(t, test.pluginsJsonContent, fs)
-			err := RemoveEntry(test.pluginToRemove, fs)
-			test.testFunc(t, fs, err)
+			createAndWritePluginsJson(t, tt.pluginsJsonContent, fs)
+			err := RemoveEntry(tt.pluginToRemove, fs)
+			tt.testFunc(t, fs, err)
 		})
 	}
 }
