@@ -33,19 +33,70 @@ var twoEntryJson string = `[
 	}
 ]`
 
-func TestInstalledVersionNoPluginFile(t *testing.T) {
+func TestInstalledVersionNoPluginsJson(t *testing.T) {
 	_, err := InstalledVersion("loremIpsum", afero.NewMemMapFs())
 	checkIfErrNotFound(t, err)
 }
 
-func TestInstalledVersionEmptyPluginFile(t *testing.T) {
-	fs := afero.NewMemMapFs()
-	createAndWritePluginsJson(t, []byte("[]"), fs)
-	_, err := InstalledVersion("loremIpsum", fs)
-	checkIfErrNotFound(t, err)
+func TestInstalledVersionWithPluginsJson(t *testing.T) {
+	testFuncErrNotFound := func(t *testing.T, _ string, err error) {
+		checkIfErrNotFound(t, err)
+	}
+	tests := map[string]struct {
+		pluginsJsonContent []byte
+		pluginName         string
+		testFunc           func(t *testing.T, version string, err error)
+	}{
+		"empty plugins.json": {
+			pluginsJsonContent: []byte(`[]`),
+			pluginName:         "loremIpsum",
+			testFunc:           testFuncErrNotFound,
+		},
+		"non-existent entry": {
+			pluginsJsonContent: []byte(oneEntryJson),
+			pluginName:         "dolorSitAmet",
+			testFunc:           testFuncErrNotFound,
+		},
+		"invalid json": {
+			pluginsJsonContent: []byte(""),
+			pluginName:         "loremIpsum",
+			testFunc: func(t *testing.T, version string, err error) {
+				if err == nil {
+					t.Fatal("want error, got nil")
+				}
+				if _, ok := err.(*json.SyntaxError); !ok {
+					t.Fatalf("want JSON syntax error, got %v", err)
+				}
+				if version != "" {
+					t.Fatalf("want version to be empty, got %v", version)
+				}
+			},
+		},
+		"existing entry": {
+			pluginsJsonContent: []byte(oneEntryJson),
+			pluginName:         "loremIpsum",
+			testFunc: func(t *testing.T, version string, err error) {
+				if err != nil {
+					t.Fatalf("want no error, got %v", err)
+				}
+				if version != "0.0.0" {
+					t.Fatalf("want version to be '0.0.0', got %v", version)
+				}
+			},
+		},
+	}
+	for name, tt := range tests {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+			fs := afero.NewMemMapFs()
+			createAndWritePluginsJson(t, tt.pluginsJsonContent, fs)
+			version, err := InstalledVersion(tt.pluginName, fs)
+			tt.testFunc(t, version, err)
+		})
+	}
 }
 
-func TestAddFirstEntryNoPluginFile(t *testing.T) {
+func TestAddFirstEntryNoPluginsJson(t *testing.T) {
 	fs := afero.NewMemMapFs()
 	err := UpdateEntries(Entry{
 		Name:        "loremIpsum",
