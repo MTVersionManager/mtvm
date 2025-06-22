@@ -35,24 +35,14 @@ var twoEntryJson string = `[
 
 func TestInstalledVersionNoPluginFile(t *testing.T) {
 	_, err := InstalledVersion("loremIpsum", afero.NewMemMapFs())
-	if err == nil {
-		t.Fatal("want error, got nil")
-	}
-	if !errors.Is(err, ErrNotFound) {
-		t.Fatal("want error to contain ErrNotFound, got error not containing ErrNotFound")
-	}
+	checkIfErrNotFound(t, err)
 }
 
 func TestInstalledVersionEmptyPluginFile(t *testing.T) {
 	fs := afero.NewMemMapFs()
 	createAndWritePluginsJson(t, []byte("[]"), fs)
 	_, err := InstalledVersion("loremIpsum", fs)
-	if err == nil {
-		t.Fatal("want error, got nil")
-	}
-	if !errors.Is(err, ErrNotFound) {
-		t.Fatal("want error to contain ErrNotFound, got error not containing ErrNotFound")
-	}
+	checkIfErrNotFound(t, err)
 }
 
 func TestAddFirstEntryNoPluginFile(t *testing.T) {
@@ -196,15 +186,13 @@ func TestGetEntriesWithPluginsJson(t *testing.T) {
 func TestRemoveEntryWithoutPluginsJson(t *testing.T) {
 	fs := afero.NewMemMapFs()
 	err := RemoveEntry("loremIpsum", fs)
-	if err == nil {
-		t.Fatal("want error, got nil")
-	}
-	if !errors.Is(err, ErrNotFound) {
-		t.Fatalf("want error containing ErrNotFound, got %v", err)
-	}
+	checkIfErrNotFound(t, err)
 }
 
 func TestRemoveEntryWithPluginsJson(t *testing.T) {
+	testFuncErrNotFound := func(t *testing.T, _ afero.Fs, err error) {
+		checkIfErrNotFound(t, err)
+	}
 	tests := []struct {
 		name               string
 		pluginToRemove     string
@@ -229,27 +217,13 @@ func TestRemoveEntryWithPluginsJson(t *testing.T) {
 			name:               "NonExistentEntry",
 			pluginToRemove:     "dolorSitAmet",
 			pluginsJsonContent: []byte(oneEntryJson),
-			testFunc: func(t *testing.T, _ afero.Fs, err error) {
-				if err == nil {
-					t.Fatal("want error, got nil")
-				}
-				if !errors.Is(err, ErrNotFound) {
-					t.Fatalf("want error containing ErrNotFound, got %v", err)
-				}
-			},
+			testFunc:           testFuncErrNotFound,
 		},
 		{
 			name:               "NoEntries",
 			pluginToRemove:     "loremIpsum",
 			pluginsJsonContent: []byte(`[]`),
-			testFunc: func(t *testing.T, _ afero.Fs, err error) {
-				if err == nil {
-					t.Fatal("want error, got nil")
-				}
-				if !errors.Is(err, ErrNotFound) {
-					t.Fatalf("want error containing ErrNotFound, got %v", err)
-				}
-			},
+			testFunc:           testFuncErrNotFound,
 		},
 		{
 			name:               "InvalidJson",
@@ -307,12 +281,7 @@ func TestRemoveExisting(t *testing.T) {
 func TestRemoveNonExistent(t *testing.T) {
 	fs := afero.NewMemMapFs()
 	err := Remove("loremIpsum", fs)
-	if err == nil {
-		t.Fatal("want error, got nil")
-	}
-	if !errors.Is(err, ErrNotFound) {
-		t.Fatalf("want error containing ErrNotFound, got %v", err)
-	}
+	checkIfErrNotFound(t, err)
 }
 
 func createAndWritePluginsJson(t *testing.T, content []byte, fs afero.Fs) {
@@ -346,4 +315,13 @@ func readPluginsJson(t *testing.T, fs afero.Fs) []byte {
 		t.Fatalf("want no error when reading plugins.json, got %v", err)
 	}
 	return data
+}
+
+func checkIfErrNotFound(t *testing.T, err error) {
+	if err == nil {
+		t.Fatal("want error, got nil")
+	}
+	if !errors.Is(err, ErrNotFound) {
+		t.Fatalf("want error to contain ErrNotFound, got error not containing ErrNotFound")
+	}
 }
