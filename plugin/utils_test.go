@@ -142,58 +142,53 @@ func TestGetEntriesWithNoPluginsJson(t *testing.T) {
 	}
 }
 
-func TestGetEntriesWithNoEntries(t *testing.T) {
-	fs := afero.NewMemMapFs()
-	err := createAndWritePluginsJson([]byte(`[]`), fs)
-	if err != nil {
-		t.Fatal(err)
+func TestGetEntriesWithPluginsJson(t *testing.T) {
+	tests := []struct {
+		name               string
+		pluginsJsonContent []byte
+		testFunc           func(t *testing.T, entries []Entry, err error)
+	}{
+		{
+			name:               "NoEntries",
+			pluginsJsonContent: []byte(`[]`),
+			testFunc: func(t *testing.T, entries []Entry, err error) {
+				if err != nil {
+					t.Fatalf("want no error, got %v", err)
+				}
+				if len(entries) != 0 {
+					t.Fatalf("want entries to be empty, got %v", entries)
+				}
+			},
+		},
+		{
+			name:               "TwoEntries",
+			pluginsJsonContent: []byte(twoEntryJson),
+			testFunc: func(t *testing.T, entries []Entry, err error) {
+				if err != nil {
+					t.Fatalf("want no error, got %v", err)
+				}
+				if len(entries) != 2 {
+					t.Fatalf("want 2 entries, got %v entries containing %v", len(entries), entries)
+				}
+				if entries[0].Name != "loremIpsum" {
+					t.Fatalf("wanted first entry name to be 'loremIpsum', got %v", entries[0].Name)
+				}
+				if entries[1].Name != "dolorSitAmet" {
+					t.Fatalf("wanted second entry name to be 'dolorSitAmet', got %v", entries[1].Name)
+				}
+			},
+		},
 	}
-	entries, err := GetEntries(fs)
-	if err != nil {
-		t.Fatalf("want no error, got %v", err)
-	}
-	if len(entries) != 0 {
-		t.Fatalf("want entries to be empty, got %v", entries)
-	}
-}
-
-func TestGetEntriesWithEntries(t *testing.T) {
-	fs := afero.NewMemMapFs()
-	err := createAndWritePluginsJson([]byte(twoEntryJson), fs)
-	if err != nil {
-		t.Fatal(err)
-	}
-	entries, err := GetEntries(fs)
-	if err != nil {
-		t.Fatalf("want no error, got %v", err)
-	}
-	if len(entries) != 2 {
-		t.Fatalf("want 2 entries, got %v entries containing %v", len(entries), entries)
-	}
-	if entries[0].Name != "loremIpsum" {
-		t.Fatalf("wanted first entry name to be 'loremIpsum', got %v", entries[0].Name)
-	}
-	if entries[1].Name != "dolorSitAmet" {
-		t.Fatalf("wanted second entry name to be 'dolorSitAmet', got %v", entries[1].Name)
-	}
-}
-
-func TestRemoveExistingEntry(t *testing.T) {
-	fs := afero.NewMemMapFs()
-	err := createAndWritePluginsJson([]byte(twoEntryJson), fs)
-	if err != nil {
-		t.Fatal(err)
-	}
-	err = RemoveEntry("dolorSitAmet", fs)
-	if err != nil {
-		t.Fatalf("want no error, got %v", err)
-	}
-	data, err := readPluginsJson(fs)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if string(data) != oneEntryJson {
-		t.Fatalf("want plugins.json to contain\n%v\ngot plugins.json containing\n%v", oneEntryJson, string(data))
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			fs := afero.NewMemMapFs()
+			err := createAndWritePluginsJson(test.pluginsJsonContent, fs)
+			if err != nil {
+				t.Fatal(err)
+			}
+			entries, err := GetEntries(fs)
+			test.testFunc(t, entries, err)
+		})
 	}
 }
 
@@ -208,48 +203,80 @@ func TestRemoveEntryWithoutPluginsJson(t *testing.T) {
 	}
 }
 
-func TestRemoveEntryNonExistentEntry(t *testing.T) {
-	fs := afero.NewMemMapFs()
-	err := createAndWritePluginsJson([]byte(oneEntryJson), fs)
-	if err != nil {
-		t.Fatal(err)
+func TestRemoveEntryWithPluginsJson(t *testing.T) {
+	tests := []struct {
+		name               string
+		pluginToRemove     string
+		pluginsJsonContent []byte
+		testFunc           func(t *testing.T, fs afero.Fs, err error)
+	}{
+		{
+			name:               "ExistingEntry",
+			pluginToRemove:     "dolorSitAmet",
+			pluginsJsonContent: []byte(twoEntryJson),
+			testFunc: func(t *testing.T, fs afero.Fs, err error) {
+				if err != nil {
+					t.Fatalf("want no error, got %v", err)
+				}
+				data, err := readPluginsJson(fs)
+				if err != nil {
+					t.Fatal(err)
+				}
+				if string(data) != oneEntryJson {
+					t.Fatalf("want plugins.json to contain\n%v\ngot plugins.json containing\n%v", oneEntryJson, string(data))
+				}
+			},
+		},
+		{
+			name:               "NonExistentEntry",
+			pluginToRemove:     "dolorSitAmet",
+			pluginsJsonContent: []byte(oneEntryJson),
+			testFunc: func(t *testing.T, _ afero.Fs, err error) {
+				if err == nil {
+					t.Fatal("want error, got nil")
+				}
+				if !errors.Is(err, ErrNotFound) {
+					t.Fatalf("want error containing ErrNotFound, got %v", err)
+				}
+			},
+		},
+		{
+			name:               "NoEntries",
+			pluginToRemove:     "loremIpsum",
+			pluginsJsonContent: []byte(`[]`),
+			testFunc: func(t *testing.T, _ afero.Fs, err error) {
+				if err == nil {
+					t.Fatal("want error, got nil")
+				}
+				if !errors.Is(err, ErrNotFound) {
+					t.Fatalf("want error containing ErrNotFound, got %v", err)
+				}
+			},
+		},
+		{
+			name:               "InvalidJson",
+			pluginToRemove:     "loremIpsum",
+			pluginsJsonContent: []byte(""),
+			testFunc: func(t *testing.T, _ afero.Fs, err error) {
+				if err == nil {
+					t.Fatal("want error, got nil")
+				}
+				if _, ok := err.(*json.SyntaxError); !ok {
+					t.Fatalf("want JSON syntax error, got %v", err)
+				}
+			},
+		},
 	}
-	err = RemoveEntry("dolorSitAmet", fs)
-	if err == nil {
-		t.Fatal("want error, got nil")
-	}
-	if !errors.Is(err, ErrNotFound) {
-		t.Fatalf("want error containing ErrNotFound, got %v", err)
-	}
-}
-
-func TestRemoveEntryInvalidJson(t *testing.T) {
-	fs := afero.NewMemMapFs()
-	err := createAndWritePluginsJson([]byte(""), fs)
-	if err != nil {
-		t.Fatal(err)
-	}
-	err = RemoveEntry("loremIpsum", fs)
-	if err == nil {
-		t.Fatal("want error, got nil")
-	}
-	if _, ok := err.(*json.SyntaxError); !ok {
-		t.Fatalf("want JSON syntax error, got %v", err)
-	}
-}
-
-func TestRemoveEntryNoEntries(t *testing.T) {
-	fs := afero.NewMemMapFs()
-	err := createAndWritePluginsJson([]byte("[]"), fs)
-	if err != nil {
-		t.Fatal(err)
-	}
-	err = RemoveEntry("loremIpsum", fs)
-	if err == nil {
-		t.Fatal("want error, got nil")
-	}
-	if !errors.Is(err, ErrNotFound) {
-		t.Fatalf("want error containing ErrNotFound, got %v", err)
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			fs := afero.NewMemMapFs()
+			err := createAndWritePluginsJson(test.pluginsJsonContent, fs)
+			if err != nil {
+				t.Fatal(err)
+			}
+			err = RemoveEntry(test.pluginToRemove, fs)
+			test.testFunc(t, fs, err)
+		})
 	}
 }
 
