@@ -3,7 +3,6 @@ package plugin
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
@@ -46,11 +45,8 @@ func TestInstalledVersionNoPluginFile(t *testing.T) {
 
 func TestInstalledVersionEmptyPluginFile(t *testing.T) {
 	fs := afero.NewMemMapFs()
-	err := createAndWritePluginsJson([]byte("[]"), fs)
-	if err != nil {
-		t.Fatal(err)
-	}
-	_, err = InstalledVersion("loremIpsum", fs)
+	createAndWritePluginsJson(t, []byte("[]"), fs)
+	_, err := InstalledVersion("loremIpsum", fs)
 	if err == nil {
 		t.Fatal("want error, got nil")
 	}
@@ -69,10 +65,7 @@ func TestAddFirstEntryNoPluginFile(t *testing.T) {
 	if err != nil {
 		t.Fatalf("want no error, got %v", err)
 	}
-	data, err := readPluginsJson(fs)
-	if err != nil {
-		t.Fatal(err)
-	}
+	data := readPluginsJson(t, fs)
 	if string(data) != oneEntryJson {
 		t.Fatalf("want plugins.json to contain\n%v\ngot plugins.json containing\n%v", oneEntryJson, string(data))
 	}
@@ -80,11 +73,8 @@ func TestAddFirstEntryNoPluginFile(t *testing.T) {
 
 func TestAddEntryWithExistingEntry(t *testing.T) {
 	fs := afero.NewMemMapFs()
-	err := createAndWritePluginsJson([]byte(oneEntryJson), fs)
-	if err != nil {
-		t.Fatal(err)
-	}
-	err = UpdateEntries(Entry{
+	createAndWritePluginsJson(t, []byte(oneEntryJson), fs)
+	err := UpdateEntries(Entry{
 		Name:        "dolorSitAmet",
 		Version:     "0.0.0",
 		MetadataUrl: "https://example.com",
@@ -92,10 +82,7 @@ func TestAddEntryWithExistingEntry(t *testing.T) {
 	if err != nil {
 		t.Fatalf("want no error when updating entries, got %v", err)
 	}
-	data, err := readPluginsJson(fs)
-	if err != nil {
-		t.Fatal(err)
-	}
+	data := readPluginsJson(t, fs)
 	if string(data) != twoEntryJson {
 		t.Fatalf("want plugins.json to contain\n%v\ngot plugins.json containing\n%v", twoEntryJson, string(data))
 	}
@@ -103,11 +90,8 @@ func TestAddEntryWithExistingEntry(t *testing.T) {
 
 func TestUpdateExistingEntry(t *testing.T) {
 	fs := afero.NewMemMapFs()
-	err := createAndWritePluginsJson([]byte(oneEntryJson), fs)
-	if err != nil {
-		t.Fatal(err)
-	}
-	err = UpdateEntries(Entry{
+	createAndWritePluginsJson(t, []byte(oneEntryJson), fs)
+	err := UpdateEntries(Entry{
 		Name:        "loremIpsum",
 		Version:     "1.0.0",
 		MetadataUrl: "https://example.com",
@@ -115,10 +99,7 @@ func TestUpdateExistingEntry(t *testing.T) {
 	if err != nil {
 		t.Fatalf("want no error, got %v", err)
 	}
-	data, err := readPluginsJson(fs)
-	if err != nil {
-		t.Fatal(err)
-	}
+	data := readPluginsJson(t, fs)
 	expected := `[
 	{
 		"name": "loremIpsum",
@@ -182,10 +163,7 @@ func TestGetEntriesWithPluginsJson(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			fs := afero.NewMemMapFs()
-			err := createAndWritePluginsJson(test.pluginsJsonContent, fs)
-			if err != nil {
-				t.Fatal(err)
-			}
+			createAndWritePluginsJson(t, test.pluginsJsonContent, fs)
 			entries, err := GetEntries(fs)
 			test.testFunc(t, entries, err)
 		})
@@ -218,10 +196,7 @@ func TestRemoveEntryWithPluginsJson(t *testing.T) {
 				if err != nil {
 					t.Fatalf("want no error, got %v", err)
 				}
-				data, err := readPluginsJson(fs)
-				if err != nil {
-					t.Fatal(err)
-				}
+				data := readPluginsJson(t, fs)
 				if string(data) != oneEntryJson {
 					t.Fatalf("want plugins.json to contain\n%v\ngot plugins.json containing\n%v", oneEntryJson, string(data))
 				}
@@ -270,11 +245,8 @@ func TestRemoveEntryWithPluginsJson(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			fs := afero.NewMemMapFs()
-			err := createAndWritePluginsJson(test.pluginsJsonContent, fs)
-			if err != nil {
-				t.Fatal(err)
-			}
-			err = RemoveEntry(test.pluginToRemove, fs)
+			createAndWritePluginsJson(t, test.pluginsJsonContent, fs)
+			err := RemoveEntry(test.pluginToRemove, fs)
 			test.testFunc(t, fs, err)
 		})
 	}
@@ -320,35 +292,35 @@ func TestRemoveNonExistent(t *testing.T) {
 	}
 }
 
-func createAndWritePluginsJson(content []byte, fs afero.Fs) error {
+func createAndWritePluginsJson(t *testing.T, content []byte, fs afero.Fs) {
 	configDir, err := config.GetConfigDir()
 	if err != nil {
-		return fmt.Errorf("want no error when getting config directory, got %v", err)
+		t.Fatalf("want no error when getting config directory, got %v", err)
 	}
 	err = fs.MkdirAll(configDir, 0o666)
 	if err != nil {
-		return fmt.Errorf("want no error when creating config directory, got %v", err)
+		t.Fatalf("want no error when creating config directory, got %v", err)
 	}
 	file, err := fs.Create(filepath.Join(configDir, "plugins.json"))
 	if err != nil {
-		return fmt.Errorf("want no error when creating plugins.json, got %v", err)
+		t.Fatalf("want no error when creating plugins.json, got %v", err)
 	}
 	defer file.Close()
 	_, err = file.Write(content)
 	if err != nil {
-		return fmt.Errorf("want no error when writing to plugins.json, got %v", err)
+		t.Fatalf("want no error when writing to plugins.json, got %v", err)
 	}
-	return nil
 }
 
-func readPluginsJson(fs afero.Fs) ([]byte, error) {
+func readPluginsJson(t *testing.T, fs afero.Fs) []byte {
 	configDir, err := config.GetConfigDir()
 	if err != nil {
-		return nil, fmt.Errorf("want no error when getting config directory, got %v", err)
+		t.Fatalf("want no error when getting config directory, got %v", err)
+		return nil
 	}
 	data, err := afero.ReadFile(fs, filepath.Join(configDir, "plugins.json"))
 	if err != nil {
-		return data, fmt.Errorf("want no error when reading plugins.json, got %v", err)
+		t.Fatalf("want no error when reading plugins.json, got %v", err)
 	}
-	return data, nil
+	return data
 }
