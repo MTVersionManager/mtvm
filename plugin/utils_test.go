@@ -71,44 +71,67 @@ func TestAddFirstEntryNoPluginFile(t *testing.T) {
 	}
 }
 
-func TestAddEntryWithExistingEntry(t *testing.T) {
-	fs := afero.NewMemMapFs()
-	createAndWritePluginsJson(t, []byte(oneEntryJson), fs)
-	err := UpdateEntries(Entry{
-		Name:        "dolorSitAmet",
-		Version:     "0.0.0",
-		MetadataUrl: "https://example.com",
-	}, fs)
-	if err != nil {
-		t.Fatalf("want no error when updating entries, got %v", err)
-	}
-	data := readPluginsJson(t, fs)
-	if string(data) != twoEntryJson {
-		t.Fatalf("want plugins.json to contain\n%v\ngot plugins.json containing\n%v", twoEntryJson, string(data))
-	}
-}
-
-func TestUpdateExistingEntry(t *testing.T) {
-	fs := afero.NewMemMapFs()
-	createAndWritePluginsJson(t, []byte(oneEntryJson), fs)
-	err := UpdateEntries(Entry{
-		Name:        "loremIpsum",
-		Version:     "1.0.0",
-		MetadataUrl: "https://example.com",
-	}, fs)
-	if err != nil {
-		t.Fatalf("want no error, got %v", err)
-	}
-	data := readPluginsJson(t, fs)
-	expected := `[
+func TestUpdateEntryWithPluginsJson(t *testing.T) {
+	tests := []struct {
+		name               string
+		pluginsJsonContent []byte
+		entry              Entry
+		wantsError         bool
+		testFunc           func(t *testing.T, fs afero.Fs, err error)
+	}{
+		{
+			name:               "AddSecondEntry",
+			pluginsJsonContent: []byte(oneEntryJson),
+			entry: Entry{
+				Name:        "dolorSitAmet",
+				Version:     "0.0.0",
+				MetadataUrl: "https://example.com",
+			},
+			wantsError: false,
+			testFunc: func(t *testing.T, fs afero.Fs, err error) {
+				data := readPluginsJson(t, fs)
+				if string(data) != twoEntryJson {
+					t.Fatalf("want plugins.json to contain\n%v\ngot plugins.json containing\n%v", twoEntryJson, string(data))
+				}
+			},
+		},
+		{
+			name:               "UpdateExistingEntry",
+			pluginsJsonContent: []byte(oneEntryJson),
+			entry: Entry{
+				Name:        "loremIpsum",
+				Version:     "1.0.0",
+				MetadataUrl: "https://example.com",
+			},
+			wantsError: false,
+			testFunc: func(t *testing.T, fs afero.Fs, err error) {
+				data := readPluginsJson(t, fs)
+				expected := `[
 	{
 		"name": "loremIpsum",
 		"version": "1.0.0",
 		"metadataUrl": "https://example.com"
 	}
 ]`
-	if string(data) != expected {
-		t.Fatalf("want plugins.json to contain\n%v\ngot plugins.json containing\n%v", expected, string(data))
+				if string(data) != expected {
+					t.Fatalf("want plugins.json to contain\n%v\ngot plugins.json containing\n%v", expected, string(data))
+				}
+			},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			fs := afero.NewMemMapFs()
+			createAndWritePluginsJson(t, test.pluginsJsonContent, fs)
+			err := UpdateEntries(test.entry, fs)
+			if test.wantsError && err == nil {
+				t.Fatal("want error, got nil")
+			}
+			if !test.wantsError && err != nil {
+				t.Fatalf("want no error, got %v", err)
+			}
+			test.testFunc(t, fs, err)
+		})
 	}
 }
 
