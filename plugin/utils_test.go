@@ -62,15 +62,13 @@ func TestAddFirstEntryNoPluginFile(t *testing.T) {
 }
 
 func TestUpdateEntryWithPluginsJson(t *testing.T) {
-	tests := []struct {
-		name               string
+	tests := map[string]struct {
 		pluginsJsonContent []byte
 		entry              Entry
 		wantsError         bool
 		testFunc           func(t *testing.T, fs afero.Fs, err error)
 	}{
-		{
-			name:               "AddSecondEntry",
+		"add second": {
 			pluginsJsonContent: []byte(oneEntryJson),
 			entry: Entry{
 				Name:        "dolorSitAmet",
@@ -85,8 +83,7 @@ func TestUpdateEntryWithPluginsJson(t *testing.T) {
 				}
 			},
 		},
-		{
-			name:               "UpdateExistingEntry",
+		"update existing": {
 			pluginsJsonContent: []byte(oneEntryJson),
 			entry: Entry{
 				Name:        "loremIpsum",
@@ -109,8 +106,9 @@ func TestUpdateEntryWithPluginsJson(t *testing.T) {
 			},
 		},
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+	for name, tt := range tests {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
 			fs := afero.NewMemMapFs()
 			createAndWritePluginsJson(t, tt.pluginsJsonContent, fs)
 			err := UpdateEntries(tt.entry, fs)
@@ -137,13 +135,11 @@ func TestGetEntriesWithNoPluginsJson(t *testing.T) {
 }
 
 func TestGetEntriesWithPluginsJson(t *testing.T) {
-	tests := []struct {
-		name               string
+	tests := map[string]struct {
 		pluginsJsonContent []byte
 		testFunc           func(t *testing.T, entries []Entry, err error)
 	}{
-		{
-			name:               "NoEntries",
+		"empty": {
 			pluginsJsonContent: []byte(`[]`),
 			testFunc: func(t *testing.T, entries []Entry, err error) {
 				if err != nil {
@@ -154,8 +150,7 @@ func TestGetEntriesWithPluginsJson(t *testing.T) {
 				}
 			},
 		},
-		{
-			name:               "TwoEntries",
+		"two entries": {
 			pluginsJsonContent: []byte(twoEntryJson),
 			testFunc: func(t *testing.T, entries []Entry, err error) {
 				if err != nil {
@@ -173,8 +168,9 @@ func TestGetEntriesWithPluginsJson(t *testing.T) {
 			},
 		},
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+	for name, tt := range tests {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
 			fs := afero.NewMemMapFs()
 			createAndWritePluginsJson(t, tt.pluginsJsonContent, fs)
 			entries, err := GetEntries(fs)
@@ -193,14 +189,12 @@ func TestRemoveEntryWithPluginsJson(t *testing.T) {
 	testFuncErrNotFound := func(t *testing.T, _ afero.Fs, err error) {
 		checkIfErrNotFound(t, err)
 	}
-	tests := []struct {
-		name               string
+	tests := map[string]struct {
 		pluginToRemove     string
 		pluginsJsonContent []byte
 		testFunc           func(t *testing.T, fs afero.Fs, err error)
 	}{
-		{
-			name:               "ExistingEntry",
+		"existing entry": {
 			pluginToRemove:     "dolorSitAmet",
 			pluginsJsonContent: []byte(twoEntryJson),
 			testFunc: func(t *testing.T, fs afero.Fs, err error) {
@@ -213,20 +207,17 @@ func TestRemoveEntryWithPluginsJson(t *testing.T) {
 				}
 			},
 		},
-		{
-			name:               "NonExistentEntry",
+		"non-existent entry": {
 			pluginToRemove:     "dolorSitAmet",
 			pluginsJsonContent: []byte(oneEntryJson),
 			testFunc:           testFuncErrNotFound,
 		},
-		{
-			name:               "NoEntries",
+		"no entries": {
 			pluginToRemove:     "loremIpsum",
 			pluginsJsonContent: []byte(`[]`),
 			testFunc:           testFuncErrNotFound,
 		},
-		{
-			name:               "InvalidJson",
+		"invalid json": {
 			pluginToRemove:     "loremIpsum",
 			pluginsJsonContent: []byte(""),
 			testFunc: func(t *testing.T, _ afero.Fs, err error) {
@@ -239,8 +230,9 @@ func TestRemoveEntryWithPluginsJson(t *testing.T) {
 			},
 		},
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+	for name, tt := range tests {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
 			fs := afero.NewMemMapFs()
 			createAndWritePluginsJson(t, tt.pluginsJsonContent, fs)
 			err := RemoveEntry(tt.pluginToRemove, fs)
