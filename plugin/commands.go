@@ -1,8 +1,6 @@
 package plugin
 
 import (
-	"errors"
-
 	"github.com/MTVersionManager/mtvm/shared"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/spf13/afero"
@@ -25,7 +23,7 @@ func InstalledVersionCmd(pluginName string, fs afero.Fs) tea.Cmd {
 	return func() tea.Msg {
 		version, err := InstalledVersion(pluginName, fs)
 		if err != nil {
-			if errors.Is(err, ErrNotFound) {
+			if shared.IsNotFound(err) {
 				return NotFoundMsg{
 					PluginName: pluginName,
 					Source:     "InstalledVersion",
@@ -41,7 +39,7 @@ func RemoveEntryCmd(pluginName string, fs afero.Fs) tea.Cmd {
 	return func() tea.Msg {
 		err := RemoveEntry(pluginName, fs)
 		if err != nil {
-			if errors.Is(err, ErrNotFound) {
+			if shared.IsNotFound(err) {
 				return NotFoundMsg{
 					PluginName: pluginName,
 					Source:     "RemoveEntry",
@@ -57,7 +55,7 @@ func RemoveCmd(pluginName string, fs afero.Fs) tea.Cmd {
 	return func() tea.Msg {
 		err := Remove(pluginName, fs)
 		if err != nil {
-			if errors.Is(err, ErrNotFound) {
+			if shared.IsNotFound(err) {
 				return NotFoundMsg{
 					PluginName: pluginName,
 					Source:     "Remove",

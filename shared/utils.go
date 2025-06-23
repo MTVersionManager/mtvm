@@ -4,20 +4,9 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
-	// "strings"
 
-	// "github.com/MTVersionManager/goplugin"
 	"github.com/MTVersionManager/mtvmplugin"
-	"github.com/charmbracelet/lipgloss"
-
-	"github.com/MTVersionManager/mtvm/config"
 )
-
-var Configuration config.Config
-
-type SuccessMsg string
-
-var CheckMark = lipgloss.NewStyle().Foreground(lipgloss.Color("2")).SetString("✓").String()
 
 func IsVersionInstalled(tool, version string) (bool, error) {
 	_, err := os.Stat(filepath.Join(Configuration.InstallDir, tool, version))
@@ -38,4 +27,9 @@ func LoadPlugin(tool string) (mtvmplugin.Plugin, error) {
 	return nil, errors.New("plugin support is not yet implemented")
 	// }
 	// return plugin, nil
+}
+
+func IsNotFound(err error) bool {
+	var notFound NotFoundError
+	return errors.As(err, &notFound)
 }

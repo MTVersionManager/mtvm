@@ -12,7 +12,7 @@ import (
 	"github.com/spf13/afero"
 )
 
-var oneEntryJson string = `[
+var oneEntryJson = `[
 	{
 		"name": "loremIpsum",
 		"version": "0.0.0",
@@ -20,7 +20,7 @@ var oneEntryJson string = `[
 	}
 ]`
 
-var twoEntryJson string = `[
+var twoEntryJson = `[
 	{
 		"name": "loremIpsum",
 		"version": "0.0.0",
@@ -35,12 +35,18 @@ var twoEntryJson string = `[
 
 func TestInstalledVersionNoPluginsJson(t *testing.T) {
 	_, err := InstalledVersion("loremIpsum", afero.NewMemMapFs())
-	checkIfErrNotFound(t, err)
+	shared.AssertIsNotFoundError(t, err, "plugins.json", shared.Source{
+		File:     "plugin/utils.go",
+		Function: "InstalledVersion(pluginName string, fs afero.Fs) (string, error)",
+	})
 }
 
 func TestInstalledVersionWithPluginsJson(t *testing.T) {
 	testFuncErrNotFound := func(t *testing.T, _ string, err error) {
-		checkIfErrNotFound(t, err)
+		shared.AssertIsNotFoundError(t, err, "entry", shared.Source{
+			File:     "plugin/utils.go",
+			Function: "InstalledVersion(pluginName string, fs afero.Fs) (string, error)",
+		})
 	}
 	tests := map[string]struct {
 		pluginsJsonContent []byte
@@ -61,12 +67,7 @@ func TestInstalledVersionWithPluginsJson(t *testing.T) {
 			pluginsJsonContent: []byte(""),
 			pluginName:         "loremIpsum",
 			testFunc: func(t *testing.T, version string, err error) {
-				if err == nil {
-					t.Fatal("want error, got nil")
-				}
-				if _, ok := err.(*json.SyntaxError); !ok {
-					t.Fatalf("want JSON syntax error, got %v", err)
-				}
+				checkIfJsonSyntaxError(t, err)
 				if version != "" {
 					t.Fatalf("want version to be empty, got %v", version)
 				}
@@ -233,12 +234,18 @@ func TestGetEntriesWithPluginsJson(t *testing.T) {
 func TestRemoveEntryWithoutPluginsJson(t *testing.T) {
 	fs := afero.NewMemMapFs()
 	err := RemoveEntry("loremIpsum", fs)
-	checkIfErrNotFound(t, err)
+	shared.AssertIsNotFoundError(t, err, "plugins.json", shared.Source{
+		File:     "plugin/utils.go",
+		Function: "RemoveEntry(pluginName string, fs afero.Fs) error",
+	})
 }
 
 func TestRemoveEntryWithPluginsJson(t *testing.T) {
 	testFuncErrNotFound := func(t *testing.T, _ afero.Fs, err error) {
-		checkIfErrNotFound(t, err)
+		shared.AssertIsNotFoundError(t, err, "entry", shared.Source{
+			File:     "plugin/utils.go",
+			Function: "RemoveEntry(pluginName string, fs afero.Fs) error",
+		})
 	}
 	tests := map[string]struct {
 		pluginToRemove     string
@@ -272,12 +279,7 @@ func TestRemoveEntryWithPluginsJson(t *testing.T) {
 			pluginToRemove:     "loremIpsum",
 			pluginsJsonContent: []byte(""),
 			testFunc: func(t *testing.T, _ afero.Fs, err error) {
-				if err == nil {
-					t.Fatal("want error, got nil")
-				}
-				if _, ok := err.(*json.SyntaxError); !ok {
-					t.Fatalf("want JSON syntax error, got %v", err)
-				}
+				checkIfJsonSyntaxError(t, err)
 			},
 		},
 	}
@@ -324,7 +326,10 @@ func TestRemoveExisting(t *testing.T) {
 func TestRemoveNonExistent(t *testing.T) {
 	fs := afero.NewMemMapFs()
 	err := Remove("loremIpsum", fs)
-	checkIfErrNotFound(t, err)
+	shared.AssertIsNotFoundError(t, err, "plugin", shared.Source{
+		File:     "plugin/utils.go",
+		Function: "Remove(pluginName string, fs afero.Fs) error",
+	})
 }
 
 func createAndWritePluginsJson(t *testing.T, content []byte, fs afero.Fs) {
@@ -360,11 +365,12 @@ func readPluginsJson(t *testing.T, fs afero.Fs) []byte {
 	return data
 }
 
-func checkIfErrNotFound(t *testing.T, err error) {
+func checkIfJsonSyntaxError(t *testing.T, err error) {
 	if err == nil {
 		t.Fatal("want error, got nil")
 	}
-	if !errors.Is(err, ErrNotFound) {
-		t.Fatalf("want error to contain ErrNotFound, got error not containing ErrNotFound")
+	var syntaxError *json.SyntaxError
+	if !errors.As(err, &syntaxError) {
+		t.Fatalf("want JSON syntax error, got %v", err)
 	}
 }

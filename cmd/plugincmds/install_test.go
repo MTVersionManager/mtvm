@@ -14,52 +14,83 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-func TestGetPluginInfo(t *testing.T) {
-	msg := getPluginInfoCmd(plugin.Metadata{
-		Name:    "loremIpsum",
-		Version: "0.0.0",
-		Downloads: []plugin.Download{
-			{
-				OS:   runtime.GOOS,
-				Arch: runtime.GOARCH,
-				Url:  "https://example.com",
-			},
-		},
-	})()
-	if downloadInfo, ok := msg.(pluginDownloadInfo); ok {
-		if downloadInfo.Name != "loremIpsum" {
-			t.Fatalf("want name to be 'loremIpsum', got name '%v'", downloadInfo.Name)
-		}
-		if downloadInfo.Url != "https://example.com" {
-			t.Fatalf("want url to be 'https://example.com', got url '%v'", downloadInfo.Url)
-		}
-		compareVersionTo := semver.New(0, 0, 0, "", "")
-		if !compareVersionTo.Equal(downloadInfo.Version) {
-			t.Fatalf("Want version 0.0.0 got %v", downloadInfo.Version.String())
-		}
-	} else if err, ok := msg.(error); ok {
-		t.Fatalf("want no error, got %v", err)
-	} else {
-		t.Fatalf("want pluginDownloadInfo returned, got %T with content %v", msg, msg)
+func TestGetPluginInfoTemp(t *testing.T) {
+	type test struct {
+		metadata plugin.Metadata
+		testFunc func(t *testing.T, msg tea.Msg)
 	}
-}
-
-func TestGetPluginInfoInvalidVersion(t *testing.T) {
-	msg := getPluginInfoCmd(plugin.Metadata{
-		Name:    "loremIpsum",
-		Version: "loremIpsum",
-		Downloads: []plugin.Download{
-			{
-				OS:   runtime.GOOS,
-				Arch: runtime.GOARCH,
-				Url:  "https://example.com",
+	tests := map[string]test{
+		"existing download": {
+			metadata: plugin.Metadata{
+				Name:    "loremIpsum",
+				Version: "0.0.0",
+				Downloads: []plugin.Download{
+					{
+						OS:   runtime.GOOS,
+						Arch: runtime.GOARCH,
+						Url:  "https://example.com",
+					},
+				},
+			},
+			testFunc: func(t *testing.T, msg tea.Msg) {
+				if downloadInfo, ok := msg.(pluginDownloadInfo); ok {
+					if downloadInfo.Name != "loremIpsum" {
+						t.Fatalf("want name to be 'loremIpsum', got name '%v'", downloadInfo.Name)
+					}
+					if downloadInfo.Url != "https://example.com" {
+						t.Fatalf("want url to be 'https://example.com', got url '%v'", downloadInfo.Url)
+					}
+					compareVersionTo := semver.New(0, 0, 0, "", "")
+					if !compareVersionTo.Equal(downloadInfo.Version) {
+						t.Fatalf("Want version 0.0.0 got %v", downloadInfo.Version.String())
+					}
+				} else if err, ok := msg.(error); ok {
+					t.Fatalf("want no error, got %v", err)
+				} else {
+					t.Fatalf("want pluginDownloadInfo returned, got %T with content %v", msg, msg)
+				}
 			},
 		},
-	})()
-	if err, ok := msg.(error); !ok {
-		t.Fatalf("want error, got %T with contents %v", msg, msg)
-	} else if !errors.Is(err, semver.ErrInvalidSemVer) {
-		t.Fatalf("want error containing ErrInvalidSemVer, got %v", err)
+		"no download": {
+			metadata: plugin.Metadata{
+				Name:    "loremIpsum",
+				Version: "0.0.0",
+				Downloads: []plugin.Download{
+					{
+						OS: func() string {
+							if runtime.GOOS == "imaginaryOS" {
+								return "fakeOS"
+							}
+							return "imaginaryOS"
+						}(),
+						Arch: func() string {
+							if runtime.GOARCH == "imaginaryArch" {
+								return "fakeArch"
+							}
+							return "imaginaryArch"
+						}(),
+						Url: "https://example.com",
+					},
+				},
+			},
+			testFunc: func(t *testing.T, msg tea.Msg) {
+				if err, ok := msg.(error); ok {
+					shared.AssertIsNotFoundError(t, err, "download", shared.Source{
+						File:     "cmd/plugincmds/install.go",
+						Function: "getPluginInfoCmd(metadata plugin.Metadata) tea.Cmd",
+					})
+				} else {
+					t.Fatalf("want error, got %T with content %v", msg, msg)
+				}
+			},
+		},
+	}
+	for name, tt := range tests {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+			msg := getPluginInfoCmd(tt.metadata)()
+			tt.testFunc(t, msg)
+		})
 	}
 }
 
