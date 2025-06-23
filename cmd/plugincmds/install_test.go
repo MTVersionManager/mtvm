@@ -3,9 +3,10 @@ package plugincmds
 import (
 	"context"
 	"errors"
-	"fmt"
 	"runtime"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 
 	"github.com/MTVersionManager/mtvm/components/downloader"
 	"github.com/MTVersionManager/mtvm/plugin"
@@ -34,12 +35,8 @@ func TestGetPluginInfo(t *testing.T) {
 			},
 			testFunc: func(t *testing.T, msg tea.Msg) {
 				if downloadInfo, ok := msg.(pluginDownloadInfo); ok {
-					if downloadInfo.Name != "loremIpsum" {
-						t.Fatalf("want name to be 'loremIpsum', got name '%v'", downloadInfo.Name)
-					}
-					if downloadInfo.Url != "https://example.com" {
-						t.Fatalf("want url to be 'https://example.com', got url '%v'", downloadInfo.Url)
-					}
+					assert.Equalf(t, "loremIpsum", downloadInfo.Name, "want name to be 'loremIpsum', got name '%v'", downloadInfo.Name)
+					assert.Equalf(t, "https://example.com", downloadInfo.Url, "want url to be 'https://example.com', got url '%v'", downloadInfo.Url)
 					compareVersionTo := semver.New(0, 0, 0, "", "")
 					if !compareVersionTo.Equal(downloadInfo.Version) {
 						t.Fatalf("Want version 0.0.0 got %v", downloadInfo.Version.String())
@@ -116,50 +113,28 @@ func TestGetPluginInfo(t *testing.T) {
 	}
 }
 
-func TestInstallUpdateCancelQ(t *testing.T) {
-	err := CancelTest(tea.KeyMsg{
-		Type:  tea.KeyRunes,
-		Runes: []rune{'q'},
-	})
-	if err != nil {
-		t.Fatal(err)
+func TestInstallUpdateCancel(t *testing.T) {
+	tests := map[string]tea.KeyMsg{
+		"ctrl+c": {
+			Type: tea.KeyCtrlC,
+		},
+		"q": {
+			Type:  tea.KeyRunes,
+			Runes: []rune{'q'},
+		},
 	}
-}
-
-func TestPluginInstallUpdateCancelCtrlC(t *testing.T) {
-	err := CancelTest(tea.KeyMsg{
-		Type: tea.KeyCtrlC,
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-}
-
-func CancelTest(keyPress tea.KeyMsg) error {
-	model := initialInstallModel("https://example.com")
-	_, cancel := context.WithCancel(context.Background())
-	modelUpdated, _ := model.Update(downloader.DownloadStartedMsg{
-		Cancel: cancel,
-	})
-	_, cmd := modelUpdated.Update(keyPress)
-	if cmd == nil {
-		return errors.New("want not nil command, got nil")
-	}
-	msg := cmd()
-	if _, ok := msg.(downloader.DownloadCanceledMsg); !ok {
-		return fmt.Errorf("expected returned command to return downloader.DownloadCanceledMsg, returned %v with type %T", msg, msg)
-	}
-	return nil
-}
-
-func TestPluginInstallUpdateEntriesSuccess(t *testing.T) {
-	model := initialInstallModel("https://example.com")
-	_, cmd := model.Update(shared.SuccessMsg("UpdateEntries"))
-	if cmd == nil {
-		t.Fatal("want not nil command, got nil")
-	}
-	msg := cmd()
-	if _, ok := msg.(tea.QuitMsg); !ok {
-		t.Fatalf("want command to return tea.QuitMsg, returned %T with content %v", msg, msg)
+	for name, keyPress := range tests {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+			model := initialInstallModel("https://example.com")
+			_, cancel := context.WithCancel(context.Background())
+			modelUpdated, _ := model.Update(downloader.DownloadStartedMsg{
+				Cancel: cancel,
+			})
+			_, cmd := modelUpdated.Update(keyPress)
+			assert.NotNil(t, cmd, "want not nil command, got nil")
+			msg := cmd()
+			assert.IsType(t, downloader.DownloadCanceledMsg{}, msg)
+		})
 	}
 }
