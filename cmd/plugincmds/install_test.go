@@ -14,7 +14,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-func TestGetPluginInfoTemp(t *testing.T) {
+func TestGetPluginInfo(t *testing.T) {
 	type test struct {
 		metadata plugin.Metadata
 		testFunc func(t *testing.T, msg tea.Msg)
@@ -79,6 +79,28 @@ func TestGetPluginInfoTemp(t *testing.T) {
 						File:     "cmd/plugincmds/install.go",
 						Function: "getPluginInfoCmd(metadata plugin.Metadata) tea.Cmd",
 					})
+				} else {
+					t.Fatalf("want error, got %T with content %v", msg, msg)
+				}
+			},
+		},
+		"invalid version": {
+			metadata: plugin.Metadata{
+				Name:    "loremIpsum",
+				Version: "IAmAnInvalidVersion",
+				Downloads: []plugin.Download{
+					{
+						OS:   runtime.GOOS,
+						Arch: runtime.GOARCH,
+						Url:  "https://example.com",
+					},
+				},
+			},
+			testFunc: func(t *testing.T, msg tea.Msg) {
+				if err, ok := msg.(error); ok {
+					if !errors.Is(err, semver.ErrInvalidSemVer) {
+						t.Fatalf("want error to be semver.ErrInvalidSemVer, got %v", err)
+					}
 				} else {
 					t.Fatalf("want error, got %T with content %v", msg, msg)
 				}
