@@ -65,8 +65,7 @@ func TestAssertIsNotFoundError(t *testing.T) {
 			thing:  "lorem",
 			source: normalTestSource,
 			testFunc: func(mockT *mockTestingT) {
-				assert.False(t, mockT.failed, "want not failed, got failed")
-				assert.Len(t, mockT.logs, 0, "want no logs, got logs")
+				assertNotFailedNoLogs(t, *mockT)
 				assert.Len(t, mockT.errors, 0, "want no errors, got errors")
 			},
 		},
@@ -78,8 +77,7 @@ func TestAssertIsNotFoundError(t *testing.T) {
 			thing:  "lorem",
 			source: normalTestSource,
 			testFunc: func(mockT *mockTestingT) {
-				assert.False(t, mockT.failed, "want not failed, got failed")
-				assert.Len(t, mockT.logs, 0, "want no logs, got logs")
+				assertNotFailedNoLogs(t, *mockT)
 				getExpectedErrorAndCompare(t, *mockT, func(mockForExpected *mockTestingT) {
 					assert.Equal(mockForExpected, "lorem", "sit", "want error to contain thing lorem, got sit")
 				})
@@ -93,8 +91,7 @@ func TestAssertIsNotFoundError(t *testing.T) {
 			thing:  "lorem",
 			source: normalTestSource,
 			testFunc: func(mockT *mockTestingT) {
-				assert.False(t, mockT.failed, "want not failed, got failed")
-				assert.Len(t, mockT.logs, 0, "want no logs, got logs")
+				assertNotFailedNoLogs(t, *mockT)
 				getExpectedErrorAndCompare(t, *mockT, func(mockForExpected *mockTestingT) {
 					assert.Equalf(mockForExpected, normalTestSource, alteredTestSource, "want error to contain source %v, got %v", normalTestSource, alteredTestSource)
 				})
@@ -105,8 +102,7 @@ func TestAssertIsNotFoundError(t *testing.T) {
 			thing:  "lorem",
 			source: normalTestSource,
 			testFunc: func(mockT *mockTestingT) {
-				assert.True(t, mockT.failed, "want failed, got not failed")
-				assert.Len(t, mockT.logs, 0, "want no logs, got logs")
+				assertFailedNoLogs(t, *mockT)
 				getExpectedErrorAndCompare(t, *mockT, func(mockForExpected *mockTestingT) {
 					assert.ErrorAs(mockForExpected, errors.New("loremIpsum"), &NotFoundError{})
 				})
@@ -117,8 +113,7 @@ func TestAssertIsNotFoundError(t *testing.T) {
 			thing:  "lorem",
 			source: normalTestSource,
 			testFunc: func(mockT *mockTestingT) {
-				assert.True(t, mockT.failed, "want failed, got not failed")
-				assert.Len(t, mockT.logs, 0, "want no logs, got logs")
+				assertFailedNoLogs(t, *mockT)
 				getExpectedErrorAndCompare(t, *mockT, func(mockForExpected *mockTestingT) {
 					assert.NotNil(mockForExpected, nil, "want not nil error, got nil")
 				})
@@ -127,6 +122,7 @@ func TestAssertIsNotFoundError(t *testing.T) {
 	}
 	for name, tt := range tests {
 		t.Run(name, func(t *testing.T) {
+			t.Parallel()
 			mockT := newMockTestingT()
 			var wg sync.WaitGroup
 			wg.Add(1)
@@ -154,4 +150,14 @@ func getExpectedErrorAndCompare(t *testing.T, mockT mockTestingT, function func(
 	function(mockForExpected)
 	require.Lenf(t, mockForExpected.errors, 1, "want 1 error when getting expected, got %v errors", len(mockForExpected.errors))
 	assert.Equal(t, removeErrorTrace(mockForExpected.errors[0]), removeErrorTrace(mockT.errors[0]), "unexpected error")
+}
+
+func assertNotFailedNoLogs(t *testing.T, mockT mockTestingT) {
+	assert.False(t, mockT.failed, "want not failed, got failed")
+	assert.Len(t, mockT.logs, 0, "want no logs, got logs")
+}
+
+func assertFailedNoLogs(t *testing.T, mockT mockTestingT) {
+	assert.True(t, mockT.failed, "want failed, got not failed")
+	assert.Len(t, mockT.logs, 0, "want no logs, got logs")
 }
