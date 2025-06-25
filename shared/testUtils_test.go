@@ -80,15 +80,9 @@ func TestAssertIsNotFoundError(t *testing.T) {
 			testFunc: func(mockT *mockTestingT) {
 				assert.False(t, mockT.failed, "want not failed, got failed")
 				assert.Len(t, mockT.logs, 0, "want no logs, got logs")
-				require.Lenf(t, mockT.errors, 1, "want 1 error, got %v errors", len(mockT.errors))
-				var expected string
-				{
-					mockForExpected := newMockTestingT()
+				getExpectedErrorAndCompare(t, *mockT, func(mockForExpected *mockTestingT) {
 					assert.Equal(mockForExpected, "lorem", "sit", "want error to contain thing lorem, got sit")
-					require.Lenf(t, mockForExpected.errors, 1, "want 1 error when getting expected, got %v errors", len(mockForExpected.errors))
-					expected = removeErrorTrace(mockForExpected.errors[0])
-				}
-				assert.Equal(t, expected, removeErrorTrace(mockT.errors[0]), "unexpected error")
+				})
 			},
 		},
 		"source mismatch": {
@@ -101,15 +95,9 @@ func TestAssertIsNotFoundError(t *testing.T) {
 			testFunc: func(mockT *mockTestingT) {
 				assert.False(t, mockT.failed, "want not failed, got failed")
 				assert.Len(t, mockT.logs, 0, "want no logs, got logs")
-				require.Lenf(t, mockT.errors, 1, "want 1 error, got %v errors", len(mockT.errors))
-				var expected string
-				{
-					mockForExpected := newMockTestingT()
+				getExpectedErrorAndCompare(t, *mockT, func(mockForExpected *mockTestingT) {
 					assert.Equalf(mockForExpected, normalTestSource, alteredTestSource, "want error to contain source %v, got %v", normalTestSource, alteredTestSource)
-					require.Lenf(t, mockForExpected.errors, 1, "want 1 error when getting expected, got %v errors", len(mockForExpected.errors))
-					expected = removeErrorTrace(mockForExpected.errors[0])
-				}
-				assert.Equal(t, expected, removeErrorTrace(mockT.errors[0]), "unexpected error")
+				})
 			},
 		},
 		"wrong error type": {
@@ -119,15 +107,9 @@ func TestAssertIsNotFoundError(t *testing.T) {
 			testFunc: func(mockT *mockTestingT) {
 				assert.True(t, mockT.failed, "want failed, got not failed")
 				assert.Len(t, mockT.logs, 0, "want no logs, got logs")
-				require.Lenf(t, mockT.errors, 1, "want 1 error, got %v errors", len(mockT.errors))
-				var expected string
-				{
-					mockForExpected := newMockTestingT()
+				getExpectedErrorAndCompare(t, *mockT, func(mockForExpected *mockTestingT) {
 					assert.ErrorAs(mockForExpected, errors.New("loremIpsum"), &NotFoundError{})
-					require.Lenf(t, mockForExpected.errors, 1, "want 1 error when getting expected, got %v errors", len(mockForExpected.errors))
-					expected = removeErrorTrace(mockForExpected.errors[0])
-				}
-				assert.Equal(t, expected, removeErrorTrace(mockT.errors[0]), "unexpected error")
+				})
 			},
 		},
 		"nil error": {
@@ -137,15 +119,9 @@ func TestAssertIsNotFoundError(t *testing.T) {
 			testFunc: func(mockT *mockTestingT) {
 				assert.True(t, mockT.failed, "want failed, got not failed")
 				assert.Len(t, mockT.logs, 0, "want no logs, got logs")
-				require.Lenf(t, mockT.errors, 1, "want 1 error, got %v errors", len(mockT.errors))
-				var expected string
-				{
-					mockForExpected := newMockTestingT()
+				getExpectedErrorAndCompare(t, *mockT, func(mockForExpected *mockTestingT) {
 					assert.NotNil(mockForExpected, nil, "want not nil error, got nil")
-					require.Lenf(t, mockForExpected.errors, 1, "want 1 error when getting expected, got %v errors", len(mockForExpected.errors))
-					expected = removeErrorTrace(mockForExpected.errors[0])
-				}
-				assert.Equal(t, expected, removeErrorTrace(mockT.errors[0]), "unexpected error")
+				})
 			},
 		},
 	}
@@ -170,4 +146,12 @@ func removeErrorTrace(error string) string {
 		return strings.TrimSpace(error[i:])
 	}
 	return error
+}
+
+func getExpectedErrorAndCompare(t *testing.T, mockT mockTestingT, function func(mockForExpected *mockTestingT)) {
+	require.Lenf(t, mockT.errors, 1, "want 1 error, got %v errors", len(mockT.errors))
+	mockForExpected := newMockTestingT()
+	function(mockForExpected)
+	require.Lenf(t, mockForExpected.errors, 1, "want 1 error when getting expected, got %v errors", len(mockForExpected.errors))
+	assert.Equal(t, removeErrorTrace(mockForExpected.errors[0]), removeErrorTrace(mockT.errors[0]), "unexpected error")
 }
