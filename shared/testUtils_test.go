@@ -43,6 +43,14 @@ func newMockTestingT() *mockTestingT {
 }
 
 func TestAssertIsNotFoundError(t *testing.T) {
+	normalTestSource := Source{
+		File:     "ipsum",
+		Function: "dolor",
+	}
+	alteredTestSource := Source{
+		File:     "sit",
+		Function: "amet",
+	}
 	tests := map[string]struct {
 		err      error
 		thing    string
@@ -51,17 +59,11 @@ func TestAssertIsNotFoundError(t *testing.T) {
 	}{
 		"matching": {
 			err: NotFoundError{
-				Thing: "lorem",
-				Source: Source{
-					File:     "ipsum",
-					Function: "dolor",
-				},
+				Thing:  "lorem",
+				Source: normalTestSource,
 			},
-			thing: "lorem",
-			source: Source{
-				File:     "ipsum",
-				Function: "dolor",
-			},
+			thing:  "lorem",
+			source: normalTestSource,
 			testFunc: func(mockT *mockTestingT) {
 				assert.False(t, mockT.failed, "want not failed, got failed")
 				assert.Len(t, mockT.logs, 0, "want no logs, got logs")
@@ -70,17 +72,11 @@ func TestAssertIsNotFoundError(t *testing.T) {
 		},
 		"thing mismatch": {
 			err: NotFoundError{
-				Thing: "sit",
-				Source: Source{
-					File:     "ipsum",
-					Function: "dolor",
-				},
+				Thing:  "sit",
+				Source: normalTestSource,
 			},
-			thing: "lorem",
-			source: Source{
-				File:     "ipsum",
-				Function: "dolor",
-			},
+			thing:  "lorem",
+			source: normalTestSource,
 			testFunc: func(mockT *mockTestingT) {
 				assert.False(t, mockT.failed, "want not failed, got failed")
 				assert.Len(t, mockT.logs, 0, "want no logs, got logs")
@@ -97,17 +93,11 @@ func TestAssertIsNotFoundError(t *testing.T) {
 		},
 		"source mismatch": {
 			err: NotFoundError{
-				Thing: "lorem",
-				Source: Source{
-					File:     "sit",
-					Function: "amet",
-				},
+				Thing:  "lorem",
+				Source: alteredTestSource,
 			},
-			thing: "lorem",
-			source: Source{
-				File:     "ipsum",
-				Function: "dolor",
-			},
+			thing:  "lorem",
+			source: normalTestSource,
 			testFunc: func(mockT *mockTestingT) {
 				assert.False(t, mockT.failed, "want not failed, got failed")
 				assert.Len(t, mockT.logs, 0, "want no logs, got logs")
@@ -115,15 +105,7 @@ func TestAssertIsNotFoundError(t *testing.T) {
 				var expected string
 				{
 					mockForExpected := newMockTestingT()
-					expectedSource := Source{
-						File:     "ipsum",
-						Function: "dolor",
-					}
-					gotSource := Source{
-						File:     "sit",
-						Function: "amet",
-					}
-					assert.Equalf(mockForExpected, expectedSource, gotSource, "want error to contain source %v, got %v", expectedSource, gotSource)
+					assert.Equalf(mockForExpected, normalTestSource, alteredTestSource, "want error to contain source %v, got %v", normalTestSource, alteredTestSource)
 					require.Lenf(t, mockForExpected.errors, 1, "want 1 error when getting expected, got %v errors", len(mockForExpected.errors))
 					expected = removeErrorTrace(mockForExpected.errors[0])
 				}
@@ -131,12 +113,9 @@ func TestAssertIsNotFoundError(t *testing.T) {
 			},
 		},
 		"wrong error type": {
-			err:   errors.New("loremIpsum"),
-			thing: "lorem",
-			source: Source{
-				File:     "ipsum",
-				Function: "dolor",
-			},
+			err:    errors.New("loremIpsum"),
+			thing:  "lorem",
+			source: normalTestSource,
 			testFunc: func(mockT *mockTestingT) {
 				assert.True(t, mockT.failed, "want failed, got not failed")
 				assert.Len(t, mockT.logs, 0, "want no logs, got logs")
@@ -152,12 +131,9 @@ func TestAssertIsNotFoundError(t *testing.T) {
 			},
 		},
 		"nil error": {
-			err:   nil,
-			thing: "lorem",
-			source: Source{
-				File:     "ipsum",
-				Function: "dolor",
-			},
+			err:    nil,
+			thing:  "lorem",
+			source: normalTestSource,
 			testFunc: func(mockT *mockTestingT) {
 				assert.True(t, mockT.failed, "want failed, got not failed")
 				assert.Len(t, mockT.logs, 0, "want no logs, got logs")
