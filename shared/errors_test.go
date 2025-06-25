@@ -1,8 +1,9 @@
 package shared
 
 import (
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestNotFoundError_Error(t *testing.T) {
@@ -13,7 +14,5 @@ func TestNotFoundError_Error(t *testing.T) {
 			Function: "dolor",
 		},
 	}
-	expected := "ipsum:dolor could not find lorem"
-	output := err.Error()
-	assert.Equal(t, expected, output)
+	assert.Equal(t, "ipsum:dolor could not find lorem", err.Error())
 }

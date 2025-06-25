@@ -2,9 +2,10 @@ package plugincmds
 
 import (
 	"context"
-	"errors"
 	"runtime"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 
 	"github.com/stretchr/testify/assert"
 
@@ -39,12 +40,12 @@ func TestGetPluginInfo(t *testing.T) {
 					assert.Equalf(t, "https://example.com", downloadInfo.Url, "want url to be 'https://example.com', got url '%v'", downloadInfo.Url)
 					compareVersionTo := semver.New(0, 0, 0, "", "")
 					if !compareVersionTo.Equal(downloadInfo.Version) {
-						t.Fatalf("Want version 0.0.0 got %v", downloadInfo.Version.String())
+						t.Errorf("Want version 0.0.0 got %v", downloadInfo.Version.String())
 					}
 				} else if err, ok := msg.(error); ok {
-					t.Fatalf("want no error, got %v", err)
+					t.Errorf("want no error, got %v", err)
 				} else {
-					t.Fatalf("want pluginDownloadInfo returned, got %T with content %v", msg, msg)
+					t.Errorf("want pluginDownloadInfo returned, got %T with content %v", msg, msg)
 				}
 			},
 		},
@@ -77,7 +78,7 @@ func TestGetPluginInfo(t *testing.T) {
 						Function: "getPluginInfoCmd(metadata plugin.Metadata) tea.Cmd",
 					})
 				} else {
-					t.Fatalf("want error, got %T with content %v", msg, msg)
+					t.Errorf("want error, got %T with content %v", msg, msg)
 				}
 			},
 		},
@@ -95,11 +96,9 @@ func TestGetPluginInfo(t *testing.T) {
 			},
 			testFunc: func(t *testing.T, msg tea.Msg) {
 				if err, ok := msg.(error); ok {
-					if !errors.Is(err, semver.ErrInvalidSemVer) {
-						t.Fatalf("want error to be semver.ErrInvalidSemVer, got %v", err)
-					}
+					assert.ErrorIs(t, err, semver.ErrInvalidSemVer)
 				} else {
-					t.Fatalf("want error, got %T with content %v", msg, msg)
+					t.Errorf("want error, got %T with content %v", msg, msg)
 				}
 			},
 		},
@@ -132,7 +131,7 @@ func TestInstallUpdateCancel(t *testing.T) {
 				Cancel: cancel,
 			})
 			_, cmd := modelUpdated.Update(keyPress)
-			assert.NotNil(t, cmd, "want not nil command, got nil")
+			require.NotNil(t, cmd, "want not nil command, got nil")
 			msg := cmd()
 			assert.IsType(t, downloader.DownloadCanceledMsg{}, msg)
 		})

@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func AssertIsNotFoundError(t *testing.T, err error, thing string, source Source) {
+func AssertIsNotFoundError(t testing.TB, err error, thing string, source Source) {
 	if err == nil {
 		t.Fatal("want error, got nil")
 	}

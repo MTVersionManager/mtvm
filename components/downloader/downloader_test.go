@@ -1,6 +1,9 @@
 package downloader
 
-import "testing"
+import (
+	"github.com/stretchr/testify/assert"
+	"testing"
+)
 
 func TestDownloadWriter_Write(t *testing.T) {
 	dw := downloadWriter{
@@ -22,22 +25,14 @@ func TestDownloadWriter_Write(t *testing.T) {
 	for i := 0; i < 2; i++ {
 		select {
 		case progress := <-dw.progressChannel:
-			if progress != 0.5 {
-				t.Fatalf("want 0.5 progress, got %v progress", progress)
-			}
+			assert.Equalf(t, 0.5, progress, "want 0.5 progress, got %v progress", progress)
 		case returnedData := <-returnDataChannel:
 			if returnedData.error != nil {
 				t.Fatal(returnedData.error)
 			}
-			if returnedData.int != 50 {
-				t.Fatalf("want 50 bytes written, got %v bytes written", returnedData.int)
-			}
+			assert.Equalf(t, 50, returnedData.int, "want 50 bytes written, got %v bytes written", returnedData.int)
 		}
 	}
-	if dw.downloadedSize != 50 {
-		t.Fatalf("want total witten size 50, got %v", dw.downloadedSize)
-	}
-	if len(dw.downloadedData) != 50 {
-		t.Fatalf("want 50 bytes of content, got %v bytes of content", len(dw.downloadedData))
-	}
+	assert.Equalf(t, int64(50), dw.downloadedSize, "want total witten size 50, got %v", dw.downloadedSize)
+	assert.Equalf(t, 50, len(dw.downloadedData), "want 50 bytes of content, got %v bytes of content", len(dw.downloadedData))
 }

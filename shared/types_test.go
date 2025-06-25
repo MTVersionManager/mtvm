@@ -1,6 +1,10 @@
 package shared
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+)
 
 func TestSource_String(t *testing.T) {
 	source := Source{
@@ -9,7 +13,5 @@ func TestSource_String(t *testing.T) {
 	}
 	expected := "lorem:ipsum"
 	output := source.String()
-	if output != expected {
-		t.Fatalf("want %v, got %v", expected, output)
-	}
+	assert.Equal(t, expected, output)
 }
