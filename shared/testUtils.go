@@ -1,7 +1,8 @@
 package shared
 
 import (
-	"errors"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"testing"
 )
 
@@ -10,14 +11,7 @@ func AssertIsNotFoundError(t testing.TB, err error, thing string, source Source)
 		t.Fatal("want error, got nil")
 	}
 	var notFoundError NotFoundError
-	errors.As(err, &notFoundError)
-	if !errors.As(err, &notFoundError) {
-		t.Fatalf("want error to be NotFoundError, got error not containing NotFoundError")
-	}
-	if notFoundError.Thing != thing {
-		t.Fatalf("want error to contain thing %v, got %v", thing, notFoundError.Thing)
-	}
-	if notFoundError.Source != source {
-		t.Fatalf("want error to contain source %v, got %v", source, notFoundError.Source)
-	}
+	require.ErrorAs(t, err, &notFoundError)
+	assert.Equalf(t, thing, notFoundError.Thing, "want error to contain thing %v, got %v", thing, notFoundError.Thing)
+	assert.Equalf(t, source, notFoundError.Source, "want error to contain source %v, got %v", source, notFoundError.Source)
 }
