@@ -1,9 +1,10 @@
 package shared
 
 import (
+	"testing"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func AssertIsNotFoundError(t testing.TB, err error, thing string, source Source) {
