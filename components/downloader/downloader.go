@@ -43,8 +43,7 @@ func (dw *downloadWriter) Start() {
 	// This sends a signal to the update function that it is safe to close the response body
 	dw.copyDone <- true
 	if err != nil && !errors.Is(err, context.Canceled) {
-		fmt.Println("Error from copying")
-		log.Fatal(err)
+		log.Fatal(fmt.Errorf("from copying: %v", err))
 	}
 }
 
@@ -132,13 +131,18 @@ func (m Model) startDownload() tea.Msg {
 		return fmt.Errorf("%v %v", resp.StatusCode, http.StatusText(resp.StatusCode))
 	}
 	contentLengthKnown := true
-	if resp.ContentLength <= 0 {
-		if resp.ContentLength == -1 {
-			contentLengthKnown = false
-		} else {
-			cancel()
-			return errors.New("error when getting content length")
+	switch resp.ContentLength {
+	case -1:
+		contentLengthKnown = false
+	case 0:
+		cancel()
+		return errors.New("content length is 0")
+	default:
+		if resp.ContentLength > 0 {
+			break
 		}
+		cancel()
+		return errors.New("unexpected error when getting content length")
 	}
 	m.writer.totalSize = resp.ContentLength
 	m.writer.resp = resp

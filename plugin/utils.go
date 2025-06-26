@@ -12,7 +12,7 @@ import (
 	"github.com/MTVersionManager/mtvm/config"
 )
 
-// UpdateEntries updates the data of an entry if it exists, and adds an entry if it doesn't
+// UpdateEntries updates the data of an entry if it exists and adds an entry if it doesn't
 func UpdateEntries(entry Entry, fs afero.Fs) error {
 	configDir, err := config.GetConfigDir()
 	if err != nil {
@@ -52,7 +52,7 @@ func UpdateEntries(entry Entry, fs afero.Fs) error {
 }
 
 // InstalledVersion returns the current version of a plugin that is installed.
-// Returns an ErrNotFound if the version is not found.
+// Returns a NotFoundError if the version is not found.
 func InstalledVersion(pluginName string, fs afero.Fs) (string, error) {
 	configDir, err := config.GetConfigDir()
 	if err != nil {
@@ -61,7 +61,13 @@ func InstalledVersion(pluginName string, fs afero.Fs) (string, error) {
 	data, err := afero.ReadFile(fs, filepath.Join(configDir, "plugins.json"))
 	if err != nil {
 		if os.IsNotExist(err) {
-			return "", ErrNotFound
+			return "", shared.NotFoundError{
+				Thing: "plugins.json",
+				Source: shared.Source{
+					File:     "plugin/utils.go",
+					Function: "InstalledVersion(pluginName string, fs afero.Fs) (string, error)",
+				},
+			}
 		}
 		return "", err
 	}
@@ -75,7 +81,13 @@ func InstalledVersion(pluginName string, fs afero.Fs) (string, error) {
 			return v.Version, nil
 		}
 	}
-	return "", fmt.Errorf("%w: %s", ErrNotFound, pluginName)
+	return "", fmt.Errorf("%w: %s", shared.NotFoundError{
+		Thing: "entry",
+		Source: shared.Source{
+			File:     "plugin/utils.go",
+			Function: "InstalledVersion(pluginName string, fs afero.Fs) (string, error)",
+		},
+	}, pluginName)
 }
 
 // GetEntries returns a list of installed plugins and an error
@@ -107,7 +119,13 @@ func RemoveEntry(pluginName string, fs afero.Fs) error {
 	data, err := afero.ReadFile(fs, filepath.Join(configDir, "plugins.json"))
 	if err != nil {
 		if os.IsNotExist(err) {
-			return ErrNotFound
+			return shared.NotFoundError{
+				Thing: "plugins.json",
+				Source: shared.Source{
+					File:     "plugin/utils.go",
+					Function: "RemoveEntry(pluginName string, fs afero.Fs) error",
+				},
+			}
 		}
 		return err
 	}
@@ -116,8 +134,15 @@ func RemoveEntry(pluginName string, fs afero.Fs) error {
 	if err != nil {
 		return err
 	}
+	notFound := shared.NotFoundError{
+		Thing: "entry",
+		Source: shared.Source{
+			File:     "plugin/utils.go",
+			Function: "RemoveEntry(pluginName string, fs afero.Fs) error",
+		},
+	}
 	if len(entries) == 0 {
-		return ErrNotFound
+		return notFound
 	}
 	removed := make([]Entry, 0, len(entries)-1)
 	for _, v := range entries {
@@ -126,7 +151,7 @@ func RemoveEntry(pluginName string, fs afero.Fs) error {
 		}
 	}
 	if len(removed) == len(entries) {
-		return ErrNotFound
+		return notFound
 	}
 	data, err = json.MarshalIndent(removed, "", "	")
 	if err != nil {
@@ -138,7 +163,13 @@ func RemoveEntry(pluginName string, fs afero.Fs) error {
 func Remove(pluginName string, fs afero.Fs) error {
 	err := fs.Remove(filepath.Join(shared.Configuration.PluginDir, pluginName+shared.LibraryExtension))
 	if os.IsNotExist(err) {
-		return ErrNotFound
+		return shared.NotFoundError{
+			Thing: "plugin",
+			Source: shared.Source{
+				File:     "plugin/utils.go",
+				Function: "Remove(pluginName string, fs afero.Fs) error",
+			},
+		}
 	}
 	return err
 }
