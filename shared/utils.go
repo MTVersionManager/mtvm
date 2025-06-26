@@ -32,6 +32,5 @@ func LoadPlugin(tool string) (mtvmplugin.Plugin, error) {
 }
 
 func IsNotFound(err error) bool {
-	var notFound NotFoundError
-	return errors.As(err, &notFound)
+	return errors.As(err, &NotFoundError{})
 }

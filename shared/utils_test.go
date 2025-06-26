@@ -93,3 +93,35 @@ func TestIsVersionInstalled(t *testing.T) {
 		})
 	}
 }
+
+func TestIsNotFound(t *testing.T) {
+	tests := map[string]struct {
+		err  error
+		want bool
+	}{
+		"not found": {
+			err: NotFoundError{
+				Thing: "lorem",
+				Source: Source{
+					File:     "ipsum",
+					Function: "dolor",
+				},
+			},
+			want: true,
+		},
+		"nil": {
+			err:  nil,
+			want: false,
+		},
+		"other error": {
+			err:  &os.PathError{},
+			want: false,
+		},
+	}
+	for name, tt := range tests {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+			assert.Equal(t, tt.want, IsNotFound(tt.err))
+		})
+	}
+}
