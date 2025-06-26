@@ -3,6 +3,7 @@ package downloader
 import (
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -93,6 +94,19 @@ func TestModel_StartDownload(t *testing.T) {
 				assert.Equal(t, hundredByteLongLoremIpsum, model.writer.downloadedData)
 			},
 		},
+		"status 400": {
+			statusCode:     400,
+			shouldDownload: false,
+			chunked:        false,
+			testFuncBeforeFinish: func(t *testing.T, model Model, msg tea.Msg) {
+				if err, ok := msg.(error); ok {
+					assert.Error(t, err)
+					assert.EqualError(t, err, "400 Bad Request")
+				} else {
+					t.Errorf("want error, got %T with content %v", msg, msg)
+				}
+			},
+		},
 	}
 	for name, tt := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -138,4 +152,29 @@ func TestModel_StartDownload(t *testing.T) {
 			}
 		})
 	}
+	t.Run("invalid url", func(t *testing.T) {
+		model := New("loremIpsum")
+		msg := model.startDownload()
+		if err, ok := msg.(error); ok {
+			assert.Error(t, err)
+			var urlError *url.Error
+			assert.ErrorAs(t, err, &urlError)
+		} else {
+			t.Errorf("want error, got %T with content %v", msg, msg)
+		}
+	})
+	t.Run("no content", func(t *testing.T) {
+		server := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+			written, err := writer.Write([]byte{})
+			assert.NoError(t, err)
+			assert.Equalf(t, 0, written, "want 0 bytes written from server, got %v bytes written", written)
+		}))
+		defer server.Close()
+		model := New(server.URL)
+		msg := model.startDownload()
+		if err, ok := msg.(error); ok {
+			assert.Error(t, err)
+			assert.EqualError(t, err, "content length is 0")
+		}
+	})
 }
