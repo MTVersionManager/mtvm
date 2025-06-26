@@ -43,8 +43,7 @@ func (dw *downloadWriter) Start() {
 	// This sends a signal to the update function that it is safe to close the response body
 	dw.copyDone <- true
 	if err != nil && !errors.Is(err, context.Canceled) {
-		fmt.Println("Error from copying")
-		log.Fatal(err)
+		log.Fatal(fmt.Errorf("from copying: %v", err))
 	}
 }
 

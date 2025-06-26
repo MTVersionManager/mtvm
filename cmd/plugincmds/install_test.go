@@ -21,18 +21,19 @@ func TestGetPluginInfo(t *testing.T) {
 		metadata plugin.Metadata
 		testFunc func(t *testing.T, msg tea.Msg)
 	}
+	exampleUsableDownloads := []plugin.Download{
+		{
+			OS:   runtime.GOOS,
+			Arch: runtime.GOARCH,
+			Url:  "https://example.com",
+		},
+	}
 	tests := map[string]test{
 		"existing download": {
 			metadata: plugin.Metadata{
-				Name:    "loremIpsum",
-				Version: "0.0.0",
-				Downloads: []plugin.Download{
-					{
-						OS:   runtime.GOOS,
-						Arch: runtime.GOARCH,
-						Url:  "https://example.com",
-					},
-				},
+				Name:      "loremIpsum",
+				Version:   "0.0.0",
+				Downloads: exampleUsableDownloads,
 			},
 			testFunc: func(t *testing.T, msg tea.Msg) {
 				if downloadInfo, ok := msg.(pluginDownloadInfo); ok {
@@ -84,15 +85,9 @@ func TestGetPluginInfo(t *testing.T) {
 		},
 		"invalid version": {
 			metadata: plugin.Metadata{
-				Name:    "loremIpsum",
-				Version: "IAmAnInvalidVersion",
-				Downloads: []plugin.Download{
-					{
-						OS:   runtime.GOOS,
-						Arch: runtime.GOARCH,
-						Url:  "https://example.com",
-					},
-				},
+				Name:      "loremIpsum",
+				Version:   "IAmAnInvalidVersion",
+				Downloads: exampleUsableDownloads,
 			},
 			testFunc: func(t *testing.T, msg tea.Msg) {
 				if err, ok := msg.(error); ok {
