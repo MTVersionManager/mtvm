@@ -2,14 +2,15 @@ package shared
 
 import (
 	"errors"
+	"github.com/spf13/afero"
 	"os"
 	"path/filepath"
 
 	"github.com/MTVersionManager/mtvmplugin"
 )
 
-func IsVersionInstalled(tool, version string) (bool, error) {
-	_, err := os.Stat(filepath.Join(Configuration.InstallDir, tool, version))
+func IsVersionInstalled(tool, version string, fs afero.Fs) (bool, error) {
+	_, err := fs.Stat(filepath.Join(Configuration.InstallDir, tool, version))
 	if err != nil {
 		if os.IsNotExist(err) {
 			return false, nil

@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/spf13/afero"
 	"log"
 	"os"
 	"path/filepath"
@@ -94,7 +95,8 @@ For example:
 				log.Fatal(err)
 			}
 		}
-		installed, err := shared.IsVersionInstalled(args[0], version)
+		fs := afero.NewOsFs()
+		installed, err := shared.IsVersionInstalled(args[0], version, fs)
 		if err != nil {
 			log.Fatal(err)
 		}
