@@ -7,7 +7,7 @@ import (
 )
 
 func AssertIsNotFoundError(t mock.TestingT, err error, thing string, source Source) {
-	require.NotNil(t, err, "want not nil error, got nil")
+	require.Error(t, err)
 	var notFoundError NotFoundError
 	require.ErrorAs(t, err, &notFoundError)
 	assert.Equalf(t, thing, notFoundError.Thing, "want error to contain thing %v, got %v", thing, notFoundError.Thing)

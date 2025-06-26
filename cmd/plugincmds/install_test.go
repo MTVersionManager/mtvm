@@ -44,7 +44,7 @@ func TestGetPluginInfo(t *testing.T) {
 						t.Errorf("Want version 0.0.0 got %v", downloadInfo.Version.String())
 					}
 				} else if err, ok := msg.(error); ok {
-					t.Errorf("want no error, got %v", err)
+					assert.NoError(t, err)
 				} else {
 					t.Errorf("want pluginDownloadInfo returned, got %T with content %v", msg, msg)
 				}

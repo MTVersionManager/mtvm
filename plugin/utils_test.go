@@ -77,7 +77,7 @@ func TestInstalledVersionWithPluginsJson(t *testing.T) {
 			pluginsJsonContent: []byte(oneEntryJson),
 			pluginName:         "loremIpsum",
 			testFunc: func(t *testing.T, version string, err error) {
-				assert.Nilf(t, err, "want no error, got %v", err)
+				assert.NoError(t, err)
 				assert.Equal(t, "0.0.0", version)
 			},
 		},
@@ -100,7 +100,7 @@ func TestAddFirstEntryNoPluginsJson(t *testing.T) {
 		Version:     "0.0.0",
 		MetadataUrl: "https://example.com",
 	}, fs)
-	assert.Nilf(t, err, "want no error, got %v", err)
+	assert.NoError(t, err)
 	data := readPluginsJson(t, fs)
 	assert.Equal(t, oneEntryJson, string(data))
 }
@@ -153,10 +153,10 @@ func TestUpdateEntryWithPluginsJson(t *testing.T) {
 			createAndWritePluginsJson(t, tt.pluginsJsonContent, fs)
 			err := UpdateEntries(tt.entry, fs)
 			if tt.wantsError {
-				assert.NotNil(t, err, "want error, got nil")
+				assert.Error(t, err)
 			}
 			if !tt.wantsError {
-				assert.Nilf(t, err, "want no error, got %v", err)
+				assert.NoError(t, err)
 			}
 			tt.testFunc(t, fs, err)
 		})
@@ -166,7 +166,7 @@ func TestUpdateEntryWithPluginsJson(t *testing.T) {
 func TestGetEntriesWithNoPluginsJson(t *testing.T) {
 	fs := afero.NewMemMapFs()
 	entries, err := GetEntries(fs)
-	assert.Nilf(t, err, "want no error, got %v", err)
+	assert.NoError(t, err)
 	assert.Nilf(t, entries, "want entries to be nil, got %v", err)
 }
 
@@ -178,14 +178,14 @@ func TestGetEntriesWithPluginsJson(t *testing.T) {
 		"empty": {
 			pluginsJsonContent: []byte(`[]`),
 			testFunc: func(t *testing.T, entries []Entry, err error) {
-				assert.Nilf(t, err, "want no error, got %v", err)
+				assert.NoError(t, err)
 				assert.Lenf(t, entries, 0, "want entries to be empty, got %v", entries)
 			},
 		},
 		"two entries": {
 			pluginsJsonContent: []byte(twoEntryJson),
 			testFunc: func(t *testing.T, entries []Entry, err error) {
-				assert.Nilf(t, err, "want no error, got %v", err)
+				assert.NoError(t, err)
 				assert.Len(t, entries, 2, "want 2 entries")
 				assert.Equalf(t, "loremIpsum", entries[0].Name, "want first entry name to be 'loremIpsum', got %v", entries[0].Name)
 				assert.Equalf(t, "dolorSitAmet", entries[1].Name, "want second entry name to be 'dolorSitAmet', got %v", entries[1].Name)
@@ -228,7 +228,7 @@ func TestRemoveEntryWithPluginsJson(t *testing.T) {
 			pluginToRemove:     "dolorSitAmet",
 			pluginsJsonContent: []byte(twoEntryJson),
 			testFunc: func(t *testing.T, fs afero.Fs, err error) {
-				assert.Nilf(t, err, "want no error, got %v", err)
+				assert.NoError(t, err)
 				data := readPluginsJson(t, fs)
 				assert.Equal(t, oneEntryJson, string(data))
 			},
@@ -266,16 +266,16 @@ func TestRemoveExisting(t *testing.T) {
 	fs := afero.NewMemMapFs()
 	var err error
 	shared.Configuration, err = config.GetConfig()
-	require.Nilf(t, err, "want no error when getting configuration, got %v", err)
+	require.NoError(t, err, "when getting configuration")
 	err = fs.MkdirAll(shared.Configuration.PluginDir, 0o777)
-	require.Nilf(t, err, "want no error when creating plugin directory, got %v", err)
+	require.NoError(t, err, "when creating plugin directory")
 	pluginPath := filepath.Join(shared.Configuration.PluginDir, "loremIpsum"+shared.LibraryExtension)
 	_, err = fs.Create(pluginPath)
-	require.Nilf(t, err, "want no error when creating plugin file, got %v", err)
+	require.NoError(t, err, "when creating plugin file")
 	err = Remove("loremIpsum", fs)
-	require.Nilf(t, err, "want no error, got %v", err)
+	require.NoError(t, err)
 	_, err = fs.Stat(pluginPath)
-	assert.NotNil(t, err, "want error, got nil (stat)")
+	assert.Error(t, err, "when statting plugin file")
 	if !os.IsNotExist(err) {
 		t.Errorf("want file does not exist error, got %v (stat)", err)
 	}
@@ -292,26 +292,26 @@ func TestRemoveNonExistent(t *testing.T) {
 
 func createAndWritePluginsJson(t *testing.T, content []byte, fs afero.Fs) {
 	configDir, err := config.GetConfigDir()
-	require.Nilf(t, err, "want no error when getting config directory, got %v", err)
+	require.NoError(t, err, "when getting config directory")
 	err = fs.MkdirAll(configDir, 0o666)
-	require.Nilf(t, err, "want no error when creating config directory, got %v", err)
+	require.NoError(t, err, "when creating config directory")
 	file, err := fs.Create(filepath.Join(configDir, "plugins.json"))
-	require.Nilf(t, err, "want no error when creating plugins.json, got %v", err)
+	require.NoError(t, err, "when creating plugins.json")
 	defer file.Close()
 	_, err = file.Write(content)
-	require.Nilf(t, err, "want no error when writing to plugins.json, got %v", err)
+	require.NoError(t, err, "when writing to plugins.json")
 }
 
 func readPluginsJson(t *testing.T, fs afero.Fs) []byte {
 	configDir, err := config.GetConfigDir()
-	require.Nilf(t, err, "want no error when getting config directory, got %v", err)
+	require.NoError(t, err, "when getting config directory")
 	data, err := afero.ReadFile(fs, filepath.Join(configDir, "plugins.json"))
-	require.Nilf(t, err, "want no error when reading plugins.json, got %v", err)
+	require.NoError(t, err, "when reading plugins.json")
 	return data
 }
 
 func checkIfJsonSyntaxError(t *testing.T, err error) {
-	require.NotNil(t, err, "want error, got nil")
+	require.Error(t, err)
 	var syntaxError *json.SyntaxError
-	assert.ErrorAsf(t, err, &syntaxError, "want JSON syntax error, got %v", err)
+	assert.ErrorAs(t, err, &syntaxError)
 }

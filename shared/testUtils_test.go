@@ -115,7 +115,7 @@ func TestAssertIsNotFoundError(t *testing.T) {
 			testFunc: func(mockT *mockTestingT) {
 				assertFailedNoLogs(t, *mockT)
 				getExpectedErrorAndCompare(t, *mockT, func(mockForExpected *mockTestingT) {
-					assert.NotNil(mockForExpected, nil, "want not nil error, got nil")
+					assert.Error(mockForExpected, nil)
 				})
 			},
 		},

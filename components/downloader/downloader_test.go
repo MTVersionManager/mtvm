@@ -36,9 +36,7 @@ func TestDownloadWriter_Write(t *testing.T) {
 		case progress := <-dw.progressChannel:
 			assert.Equalf(t, 0.5, progress, "want 0.5 progress, got %v progress", progress)
 		case returnedData := <-returnDataChannel:
-			if returnedData.error != nil {
-				t.Fatal(returnedData.error)
-			}
+			assert.NoError(t, returnedData.error)
 			assert.Equalf(t, 50, returnedData.int, "want 50 bytes written, got %v bytes written", returnedData.int)
 		}
 	}
