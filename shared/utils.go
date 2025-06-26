@@ -21,14 +21,8 @@ func IsVersionInstalled(tool, version string, fs afero.Fs) (bool, error) {
 	return true, nil
 }
 
-func LoadPlugin(tool string) (mtvmplugin.Plugin, error) {
-	// var plugin mtvmplugin.Plugin
-	// if strings.ToLower(tool) == "go" {
-	//	plugin = &goplugin.Plugin{}
-	// } else {
+func LoadPlugin(_ string) (mtvmplugin.Plugin, error) {
 	return nil, errors.New("plugin support is not yet implemented")
-	// }
-	// return plugin, nil
 }
 
 func IsNotFound(err error) bool {
