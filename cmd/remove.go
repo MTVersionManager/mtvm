@@ -2,10 +2,11 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/spf13/afero"
 	"log"
 	"os"
 	"path/filepath"
+
+	"github.com/spf13/afero"
 
 	"github.com/MTVersionManager/mtvm/shared"
 	"github.com/MTVersionManager/mtvmplugin"
