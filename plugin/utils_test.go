@@ -297,10 +297,10 @@ func createAndWritePluginsJson(t *testing.T, content []byte, fs afero.Fs) {
 	require.NoError(t, err, "when creating config directory")
 	file, err := fs.Create(filepath.Join(configDir, "plugins.json"))
 	require.NoError(t, err, "when creating plugins.json")
-	defer func() {
+	defer func(file afero.File) {
 		err := file.Close()
 		assert.NoError(t, err, "when closing plugins.json")
-	}()
+	}(file)
 	_, err = file.Write(content)
 	require.NoError(t, err, "when writing to plugins.json")
 }
