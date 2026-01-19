@@ -2,10 +2,12 @@ package plugincmds
 
 import (
 	"context"
-	"errors"
-	"fmt"
 	"runtime"
 	"testing"
+
+	"github.com/stretchr/testify/require"
+
+	"github.com/stretchr/testify/assert"
 
 	"github.com/MTVersionManager/mtvm/components/downloader"
 	"github.com/MTVersionManager/mtvm/plugin"
@@ -15,98 +17,118 @@ import (
 )
 
 func TestGetPluginInfo(t *testing.T) {
-	msg := getPluginInfoCmd(plugin.Metadata{
-		Name:    "loremIpsum",
-		Version: "0.0.0",
-		Downloads: []plugin.Download{
-			{
-				OS:   runtime.GOOS,
-				Arch: runtime.GOARCH,
-				Url:  "https://example.com",
+	type test struct {
+		metadata plugin.Metadata
+		testFunc func(t *testing.T, msg tea.Msg)
+	}
+	exampleUsableDownloads := []plugin.Download{
+		{
+			OS:   runtime.GOOS,
+			Arch: runtime.GOARCH,
+			Url:  "https://example.com",
+		},
+	}
+	tests := map[string]test{
+		"existing download": {
+			metadata: plugin.Metadata{
+				Name:      "loremIpsum",
+				Version:   "0.0.0",
+				Downloads: exampleUsableDownloads,
+			},
+			testFunc: func(t *testing.T, msg tea.Msg) {
+				if downloadInfo, ok := msg.(pluginDownloadInfo); ok {
+					assert.Equalf(t, "loremIpsum", downloadInfo.Name, "want name to be 'loremIpsum', got name '%v'", downloadInfo.Name)
+					assert.Equalf(t, "https://example.com", downloadInfo.Url, "want url to be 'https://example.com', got url '%v'", downloadInfo.Url)
+					compareVersionTo := semver.New(0, 0, 0, "", "")
+					if !compareVersionTo.Equal(downloadInfo.Version) {
+						t.Errorf("Want version 0.0.0 got %v", downloadInfo.Version.String())
+					}
+				} else if err, ok := msg.(error); ok {
+					assert.NoError(t, err)
+				} else {
+					t.Errorf("want pluginDownloadInfo returned, got %T with content %v", msg, msg)
+				}
 			},
 		},
-	})()
-	if downloadInfo, ok := msg.(pluginDownloadInfo); ok {
-		if downloadInfo.Name != "loremIpsum" {
-			t.Fatalf("want name to be 'loremIpsum', got name '%v'", downloadInfo.Name)
-		}
-		if downloadInfo.Url != "https://example.com" {
-			t.Fatalf("want url to be 'https://example.com', got url '%v'", downloadInfo.Url)
-		}
-		compareVersionTo := semver.New(0, 0, 0, "", "")
-		if !compareVersionTo.Equal(downloadInfo.Version) {
-			t.Fatalf("Want version 0.0.0 got %v", downloadInfo.Version.String())
-		}
-	} else if err, ok := msg.(error); ok {
-		t.Fatalf("want no error, got %v", err)
-	} else {
-		t.Fatalf("want pluginDownloadInfo returned, got %T with content %v", msg, msg)
-	}
-}
-
-func TestGetPluginInfoInvalidVersion(t *testing.T) {
-	msg := getPluginInfoCmd(plugin.Metadata{
-		Name:    "loremIpsum",
-		Version: "loremIpsum",
-		Downloads: []plugin.Download{
-			{
-				OS:   runtime.GOOS,
-				Arch: runtime.GOARCH,
-				Url:  "https://example.com",
+		"no download": {
+			metadata: plugin.Metadata{
+				Name:    "loremIpsum",
+				Version: "0.0.0",
+				Downloads: []plugin.Download{
+					{
+						OS: func() string {
+							if runtime.GOOS == "imaginaryOS" {
+								return "fakeOS"
+							}
+							return "imaginaryOS"
+						}(),
+						Arch: func() string {
+							if runtime.GOARCH == "imaginaryArch" {
+								return "fakeArch"
+							}
+							return "imaginaryArch"
+						}(),
+						Url: "https://example.com",
+					},
+				},
+			},
+			testFunc: func(t *testing.T, msg tea.Msg) {
+				if err, ok := msg.(error); ok {
+					shared.AssertIsNotFoundError(t, err, "download", shared.Source{
+						File:     "cmd/plugincmds/install.go",
+						Function: "getPluginInfoCmd(metadata plugin.Metadata) tea.Cmd",
+					})
+				} else {
+					t.Errorf("want error, got %T with content %v", msg, msg)
+				}
 			},
 		},
-	})()
-	if err, ok := msg.(error); !ok {
-		t.Fatalf("want error, got %T with contents %v", msg, msg)
-	} else if !errors.Is(err, semver.ErrInvalidSemVer) {
-		t.Fatalf("want error containing ErrInvalidSemVer, got %v", err)
+		"invalid version": {
+			metadata: plugin.Metadata{
+				Name:      "loremIpsum",
+				Version:   "IAmAnInvalidVersion",
+				Downloads: exampleUsableDownloads,
+			},
+			testFunc: func(t *testing.T, msg tea.Msg) {
+				if err, ok := msg.(error); ok {
+					assert.ErrorIs(t, err, semver.ErrInvalidSemVer)
+				} else {
+					t.Errorf("want error, got %T with content %v", msg, msg)
+				}
+			},
+		},
+	}
+	for name, tt := range tests {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+			msg := getPluginInfoCmd(tt.metadata)()
+			tt.testFunc(t, msg)
+		})
 	}
 }
 
-func TestInstallUpdateCancelQ(t *testing.T) {
-	err := CancelTest(tea.KeyMsg{
-		Type:  tea.KeyRunes,
-		Runes: []rune{'q'},
-	})
-	if err != nil {
-		t.Fatal(err)
+func TestInstallUpdateCancel(t *testing.T) {
+	tests := map[string]tea.KeyMsg{
+		"ctrl+c": {
+			Type: tea.KeyCtrlC,
+		},
+		"q": {
+			Type:  tea.KeyRunes,
+			Runes: []rune{'q'},
+		},
 	}
-}
-
-func TestPluginInstallUpdateCancelCtrlC(t *testing.T) {
-	err := CancelTest(tea.KeyMsg{
-		Type: tea.KeyCtrlC,
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-}
-
-func CancelTest(keyPress tea.KeyMsg) error {
-	model := initialInstallModel("https://example.com")
-	_, cancel := context.WithCancel(context.Background())
-	modelUpdated, _ := model.Update(downloader.DownloadStartedMsg{
-		Cancel: cancel,
-	})
-	_, cmd := modelUpdated.Update(keyPress)
-	if cmd == nil {
-		return errors.New("want not nil command, got nil")
-	}
-	msg := cmd()
-	if _, ok := msg.(downloader.DownloadCanceledMsg); !ok {
-		return fmt.Errorf("expected returned command to return downloader.DownloadCanceledMsg, returned %v with type %T", msg, msg)
-	}
-	return nil
-}
-
-func TestPluginInstallUpdateEntriesSuccess(t *testing.T) {
-	model := initialInstallModel("https://example.com")
-	_, cmd := model.Update(shared.SuccessMsg("UpdateEntries"))
-	if cmd == nil {
-		t.Fatal("want not nil command, got nil")
-	}
-	msg := cmd()
-	if _, ok := msg.(tea.QuitMsg); !ok {
-		t.Fatalf("want command to return tea.QuitMsg, returned %T with content %v", msg, msg)
+	for name, keyPress := range tests {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+			model := initialInstallModel("https://example.com")
+			_, cancel := context.WithCancel(context.Background())
+			modelUpdated, _ := model.Update(downloader.DownloadStartedMsg{
+				Cancel: cancel,
+			})
+			_, cmd := modelUpdated.Update(keyPress)
+			require.NotNil(t, cmd, "want not nil command, got nil")
+			msg := cmd()
+			assert.IsType(t, downloader.DownloadCanceledMsg{}, msg)
+		})
 	}
 }

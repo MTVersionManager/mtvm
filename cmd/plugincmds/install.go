@@ -83,6 +83,15 @@ func getPluginInfoCmd(metadata plugin.Metadata) tea.Cmd {
 				url = v.Url
 			}
 		}
+		if url == "" {
+			return shared.NotFoundError{
+				Thing: "download",
+				Source: shared.Source{
+					File:     "cmd/plugincmds/install.go",
+					Function: "getPluginInfoCmd(metadata plugin.Metadata) tea.Cmd",
+				},
+			}
+		}
 		return pluginDownloadInfo{
 			Url:     url,
 			Name:    metadata.Name,

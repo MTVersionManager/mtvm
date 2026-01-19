@@ -63,7 +63,8 @@ If you run "mtvm install go latest" it will install the latest version of go`,
 	Args:    cobra.ExactArgs(2),
 	Aliases: []string{"i", "in"},
 	Run: func(cmd *cobra.Command, args []string) {
-		err := createInstallDir(afero.NewOsFs())
+		fs := afero.NewOsFs()
+		err := createInstallDir(fs)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -79,7 +80,7 @@ If you run "mtvm install go latest" it will install the latest version of go`,
 				log.Fatal(err)
 			}
 		}
-		installed, err := shared.IsVersionInstalled(args[0], version)
+		installed, err := shared.IsVersionInstalled(args[0], version, fs)
 		if err != nil {
 			log.Fatal(err)
 		}

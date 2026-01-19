@@ -6,6 +6,8 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/spf13/afero"
+
 	"github.com/MTVersionManager/mtvm/shared"
 	"github.com/MTVersionManager/mtvmplugin"
 	"github.com/charmbracelet/bubbles/spinner"
@@ -94,7 +96,8 @@ For example:
 				log.Fatal(err)
 			}
 		}
-		installed, err := shared.IsVersionInstalled(args[0], version)
+		fs := afero.NewOsFs()
+		installed, err := shared.IsVersionInstalled(args[0], version, fs)
 		if err != nil {
 			log.Fatal(err)
 		}

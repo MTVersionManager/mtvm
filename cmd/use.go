@@ -117,7 +117,7 @@ So if you run go version it will print the version number 1.23.3`,
 					log.Fatal(err)
 				}
 			}
-			versionInstalled, err := shared.IsVersionInstalled(args[0], version)
+			versionInstalled, err := shared.IsVersionInstalled(args[0], version, fs)
 			if err != nil {
 				log.Fatal(err)
 			}
